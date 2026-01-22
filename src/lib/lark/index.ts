@@ -28,5 +28,18 @@ export {
   type TokenExpirationStatus,
 } from './token';
 
+// Meeting Service
+export {
+  MeetingService,
+  MeetingNotFoundError,
+  MeetingApiError,
+  createMeetingService,
+  calculateDuration,
+  transformLarkMeeting,
+  transformLarkParticipant,
+  transformLarkRecording,
+  type PaginationOptions,
+} from './meeting';
+
 // Types
 export * from './types';

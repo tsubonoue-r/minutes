@@ -5,3 +5,4 @@
 
 export * from './auth';
 export * from './lark';
+export * from './meeting';
