@@ -1,0 +1,368 @@
+{
+  "metadata": {
+    "generatedAt": "2026-01-22T05:45:00.000Z",
+    "generatedBy": "CoordinatorAgent",
+    "projectName": "minutes",
+    "totalIssues": 12,
+    "openIssues": 12,
+    "closedPrerequisites": 6
+  },
+  "issueAnalysis": {
+    "summary": {
+      "P0-Critical": ["#1", "#2"],
+      "P1-High": ["#10", "#12"],
+      "P2-Medium": ["#9", "#11", "#13", "#14", "#15", "#16", "#17", "#18"]
+    },
+    "completedPhases": {
+      "Phase1-MVP": {
+        "status": "COMPLETED",
+        "issues": ["#3", "#4", "#5", "#6", "#7"],
+        "description": "Lark OAuth, Meeting List, Transcription, AI Generation, Docs Output"
+      },
+      "Phase2-Core-Partial": {
+        "status": "PARTIAL",
+        "completed": ["#8"],
+        "remaining": ["#9", "#10", "#11"],
+        "description": "Action Item extraction completed"
+      }
+    }
+  },
+  "dag": {
+    "nodes": [
+      {
+        "id": "issue-1",
+        "issueNumber": 1,
+        "title": "Welcome to Miyabi",
+        "type": "docs",
+        "priority": "P0-Critical",
+        "status": "OPEN",
+        "estimatedMinutes": 15,
+        "agent": "CodeGenAgent",
+        "dependencies": [],
+        "phase": "Setup"
+      },
+      {
+        "id": "issue-2",
+        "issueNumber": 2,
+        "title": "Epic: 議事録自動生成Webアプリ開発",
+        "type": "epic",
+        "priority": "P0-Critical",
+        "status": "OPEN",
+        "estimatedMinutes": 0,
+        "agent": "CoordinatorAgent",
+        "dependencies": [],
+        "phase": "Epic",
+        "note": "親Issue - 実装不要、進捗追跡用"
+      },
+      {
+        "id": "issue-9",
+        "issueNumber": 9,
+        "title": "Phase2-2: テンプレート機能",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 120,
+        "agent": "CodeGenAgent",
+        "dependencies": [],
+        "phase": "Phase2",
+        "implicitDependencies": ["Phase1完了済み"]
+      },
+      {
+        "id": "issue-10",
+        "issueNumber": 10,
+        "title": "Phase2-3: Lark Base連携",
+        "type": "feature",
+        "priority": "P1-High",
+        "status": "OPEN",
+        "estimatedMinutes": 180,
+        "agent": "CodeGenAgent",
+        "dependencies": [],
+        "phase": "Phase2",
+        "tags": ["database", "api"],
+        "implicitDependencies": ["Phase1完了済み"]
+      },
+      {
+        "id": "issue-11",
+        "issueNumber": 11,
+        "title": "Phase2-4: グループ通知機能",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 90,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10"],
+        "phase": "Phase2",
+        "tags": ["api"],
+        "dependencyReason": "通知にはBase連携(議事録データ保存)が必要"
+      },
+      {
+        "id": "issue-12",
+        "issueNumber": 12,
+        "title": "Phase3-1: Webhook連携",
+        "type": "feature",
+        "priority": "P1-High",
+        "status": "OPEN",
+        "estimatedMinutes": 150,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10", "issue-11"],
+        "phase": "Phase3",
+        "tags": ["api"],
+        "dependencyReason": "自動トリガーにはBase連携と通知機能が必要"
+      },
+      {
+        "id": "issue-13",
+        "issueNumber": 13,
+        "title": "Phase3-2: 承認ワークフロー",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 120,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10", "issue-11"],
+        "phase": "Phase3",
+        "dependencyReason": "承認にはBase連携(ステータス管理)と通知機能が必要"
+      },
+      {
+        "id": "issue-14",
+        "issueNumber": 14,
+        "title": "Phase3-3: リマインダー機能",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 90,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10", "issue-11"],
+        "phase": "Phase3",
+        "dependencyReason": "リマインダーにはBase連携(タスクデータ)と通知機能が必要"
+      },
+      {
+        "id": "issue-15",
+        "issueNumber": 15,
+        "title": "Phase4-1: ダッシュボード・統計機能",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 150,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10"],
+        "phase": "Phase4",
+        "dependencyReason": "統計表示にはBase連携(データ集計)が必要"
+      },
+      {
+        "id": "issue-16",
+        "issueNumber": 16,
+        "title": "Phase4-2: 検索機能強化",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 120,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-10"],
+        "phase": "Phase4",
+        "dependencyReason": "検索にはBase連携(データアクセス)が必要"
+      },
+      {
+        "id": "issue-17",
+        "issueNumber": 17,
+        "title": "Phase4-3: 複数テンプレート管理",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 120,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-9", "issue-10"],
+        "phase": "Phase4",
+        "dependencyReason": "テンプレート管理にはテンプレート機能とBase連携が必要"
+      },
+      {
+        "id": "issue-18",
+        "issueNumber": 18,
+        "title": "Phase4-4: カレンダー連携",
+        "type": "feature",
+        "priority": "P2-Medium",
+        "status": "OPEN",
+        "estimatedMinutes": 150,
+        "agent": "CodeGenAgent",
+        "dependencies": ["issue-9", "issue-12"],
+        "phase": "Phase4",
+        "tags": ["api"],
+        "dependencyReason": "カレンダー連携にはテンプレート機能とWebhook連携が必要"
+      }
+    ],
+    "edges": [
+      { "from": "issue-10", "to": "issue-11", "type": "data-dependency" },
+      { "from": "issue-10", "to": "issue-12", "type": "data-dependency" },
+      { "from": "issue-11", "to": "issue-12", "type": "feature-dependency" },
+      { "from": "issue-10", "to": "issue-13", "type": "data-dependency" },
+      { "from": "issue-11", "to": "issue-13", "type": "feature-dependency" },
+      { "from": "issue-10", "to": "issue-14", "type": "data-dependency" },
+      { "from": "issue-11", "to": "issue-14", "type": "feature-dependency" },
+      { "from": "issue-10", "to": "issue-15", "type": "data-dependency" },
+      { "from": "issue-10", "to": "issue-16", "type": "data-dependency" },
+      { "from": "issue-9", "to": "issue-17", "type": "feature-dependency" },
+      { "from": "issue-10", "to": "issue-17", "type": "data-dependency" },
+      { "from": "issue-9", "to": "issue-18", "type": "feature-dependency" },
+      { "from": "issue-12", "to": "issue-18", "type": "feature-dependency" }
+    ],
+    "levels": [
+      {
+        "level": 0,
+        "description": "独立タスク - 並行実行可能",
+        "tasks": ["issue-1", "issue-2", "issue-9", "issue-10"],
+        "maxParallelism": 4
+      },
+      {
+        "level": 1,
+        "description": "Level0依存タスク",
+        "tasks": ["issue-11", "issue-15", "issue-16", "issue-17"],
+        "maxParallelism": 4
+      },
+      {
+        "level": 2,
+        "description": "Level1依存タスク",
+        "tasks": ["issue-12", "issue-13", "issue-14"],
+        "maxParallelism": 3
+      },
+      {
+        "level": 3,
+        "description": "最終レベル",
+        "tasks": ["issue-18"],
+        "maxParallelism": 1
+      }
+    ],
+    "criticalPath": {
+      "path": ["issue-10", "issue-11", "issue-12", "issue-18"],
+      "totalMinutes": 570,
+      "description": "Lark Base連携 -> グループ通知 -> Webhook連携 -> カレンダー連携",
+      "bottleneck": "issue-10 (Lark Base連携) が最多の下流依存を持つ"
+    }
+  },
+  "executionPlan": {
+    "strategy": "topological-level-order",
+    "maxConcurrency": 5,
+    "phases": [
+      {
+        "phaseId": 1,
+        "name": "Phase2残り + 独立タスク",
+        "duration": "3時間",
+        "execution": [
+          {
+            "batch": 1,
+            "parallel": true,
+            "tasks": [
+              { "issue": 1, "agent": "CodeGenAgent", "est": "15min", "priority": "P0" },
+              { "issue": 9, "agent": "CodeGenAgent", "est": "2h", "priority": "P2" },
+              { "issue": 10, "agent": "CodeGenAgent", "est": "3h", "priority": "P1" }
+            ],
+            "note": "Issue #2はEpicのため実装不要"
+          }
+        ]
+      },
+      {
+        "phaseId": 2,
+        "name": "Phase2完了 + Phase4開始",
+        "duration": "2.5時間",
+        "waitFor": ["issue-10"],
+        "execution": [
+          {
+            "batch": 2,
+            "parallel": true,
+            "tasks": [
+              { "issue": 11, "agent": "CodeGenAgent", "est": "1.5h", "priority": "P2" },
+              { "issue": 15, "agent": "CodeGenAgent", "est": "2.5h", "priority": "P2" },
+              { "issue": 16, "agent": "CodeGenAgent", "est": "2h", "priority": "P2" }
+            ]
+          }
+        ]
+      },
+      {
+        "phaseId": 3,
+        "name": "Phase3実行",
+        "duration": "2.5時間",
+        "waitFor": ["issue-11"],
+        "execution": [
+          {
+            "batch": 3,
+            "parallel": true,
+            "tasks": [
+              { "issue": 12, "agent": "CodeGenAgent", "est": "2.5h", "priority": "P1" },
+              { "issue": 13, "agent": "CodeGenAgent", "est": "2h", "priority": "P2" },
+              { "issue": 14, "agent": "CodeGenAgent", "est": "1.5h", "priority": "P2" }
+            ]
+          },
+          {
+            "batch": 4,
+            "parallel": true,
+            "waitFor": ["issue-9"],
+            "tasks": [
+              { "issue": 17, "agent": "CodeGenAgent", "est": "2h", "priority": "P2" }
+            ]
+          }
+        ]
+      },
+      {
+        "phaseId": 4,
+        "name": "Phase4完了",
+        "duration": "2.5時間",
+        "waitFor": ["issue-12"],
+        "execution": [
+          {
+            "batch": 5,
+            "parallel": false,
+            "tasks": [
+              { "issue": 18, "agent": "CodeGenAgent", "est": "2.5h", "priority": "P2" }
+            ]
+          }
+        ]
+      }
+    ],
+    "totalEstimatedTime": {
+      "sequential": "19時間30分",
+      "parallel": "10時間30分",
+      "efficiency": "46% 時間短縮"
+    }
+  },
+  "validation": {
+    "circularDependencyCheck": "PASSED",
+    "orphanNodeCheck": "PASSED",
+    "levelConsistencyCheck": "PASSED",
+    "warnings": [
+      {
+        "type": "BOTTLENECK",
+        "issue": 10,
+        "message": "#10 (Lark Base連携) は9つのIssueの前提条件。優先的に完了すべき"
+      },
+      {
+        "type": "EPIC_OPEN",
+        "issue": 2,
+        "message": "#2 はEpicで実装不要だが、子Issue完了時にクローズが必要"
+      }
+    ]
+  },
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "action": "Issue #10 (Lark Base連携) を最優先で実行",
+      "reason": "DAGの最大ボトルネック。完了により9つのIssueがアンロック"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Issue #9 (テンプレート機能) と #10 を並行実行",
+      "reason": "両者は独立しており、並行実行で時間短縮"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Issue #1 (Welcome) は即座にクローズ可能",
+      "reason": "ドキュメント/デモ用Issueで実質完了済み"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Phase3の3タスク (#12, #13, #14) は並行実行推奨",
+      "reason": "全て#10, #11に依存するが、相互依存なし"
+    }
+  ],
+  "ganttChart": {
+    "description": "Mermaid Gantt形式で可視化",
+    "mermaid": "gantt\n    title Issue DAG 実行計画\n    dateFormat HH:mm\n    section Phase2\n    #10 Lark Base連携 :crit, p10, 00:00, 3h\n    #9 テンプレート機能 :p9, 00:00, 2h\n    #11 グループ通知 :p11, after p10, 1.5h\n    section Phase3\n    #12 Webhook連携 :crit, p12, after p11, 2.5h\n    #13 承認ワークフロー :p13, after p11, 2h\n    #14 リマインダー :p14, after p11, 1.5h\n    section Phase4\n    #15 ダッシュボード :p15, after p10, 2.5h\n    #16 検索機能 :p16, after p10, 2h\n    #17 テンプレート管理 :p17, after p9 p10, 2h\n    #18 カレンダー連携 :crit, p18, after p12, 2.5h"
+  }
+}

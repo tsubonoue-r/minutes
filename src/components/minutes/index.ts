@@ -40,6 +40,10 @@ export type {
   GenerationStatus,
 } from './GenerateButton';
 
+// GenerateMinutesWithTemplate - Generation with template selection
+export { GenerateMinutesWithTemplate } from './GenerateMinutesWithTemplate';
+export type { GenerateMinutesWithTemplateProps } from './GenerateMinutesWithTemplate';
+
 // MinutesSkeleton - Loading states
 export { MinutesSkeleton, MinutesContentSkeleton } from './MinutesSkeleton';
 export type {
