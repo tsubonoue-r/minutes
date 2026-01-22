@@ -47,11 +47,47 @@ interface IronSessionCookieStore {
 }
 
 /**
+ * Check if simple auth mode is enabled (API Key or DEV_SKIP_AUTH)
+ */
+function isSimpleAuthMode(): boolean {
+  // API Key認証が設定されている場合
+  if (process.env.API_KEY) {
+    return true;
+  }
+  // 開発用認証スキップ（本番環境では無効）
+  if (process.env.DEV_SKIP_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Mock session for simple auth mode
+ */
+const MOCK_SESSION: SessionData = {
+  isAuthenticated: true,
+  user: {
+    openId: 'api-user-001',
+    unionId: 'api-union-001',
+    name: 'API User',
+    email: 'api@example.com',
+    avatarUrl: '',
+    tenantKey: 'api-tenant-001',
+  },
+  accessToken: 'mock-access-token',
+};
+
+/**
  * Get the current session from server component
  *
  * @returns Session data or null if not authenticated
  */
 export async function getSession(): Promise<SessionData | null> {
+  // Simple auth mode: return mock session
+  if (isSimpleAuthMode()) {
+    return MOCK_SESSION;
+  }
+
   try {
     // cookies() returns ReadonlyRequestCookies in Next.js 14+
     const cookieStore = cookies();
@@ -74,48 +110,19 @@ export async function getSession(): Promise<SessionData | null> {
 }
 
 /**
- * 開発用/API Key認証用ダミーユーザー
- */
-const DEV_MOCK_USER: LarkUser = {
-  openId: 'api-user-001',
-  unionId: 'api-union-001',
-  name: 'API User',
-  email: 'api@example.com',
-  avatarUrl: '',
-  tenantKey: 'api-tenant-001',
-};
-
-/**
- * Check if simple auth mode is enabled (API Key or DEV_SKIP_AUTH)
- */
-function isSimpleAuthMode(): boolean {
-  // API Key認証が設定されている場合
-  if (process.env.API_KEY) {
-    return true;
-  }
-  // 開発用認証スキップ（本番環境では無効）
-  if (process.env.DEV_SKIP_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
-    return true;
-  }
-  return false;
-}
-
-/**
  * Get the current user from server component
  *
  * @returns User object or null if not authenticated
  */
 export async function getCurrentUser(): Promise<LarkUser | null> {
-  // API Key認証または開発用スキップ時はダミーユーザーを返す
-  if (isSimpleAuthMode()) {
-    console.log('[getCurrentUser] Simple auth mode: Returning mock user');
-    return DEV_MOCK_USER;
-  }
-
   const session = await getSession();
 
   if (session === null || session.user === undefined) {
     return null;
+  }
+
+  if (isSimpleAuthMode()) {
+    console.log('[getCurrentUser] Simple auth mode: Returning mock user');
   }
 
   return session.user;
