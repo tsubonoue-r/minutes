@@ -16,3 +16,6 @@ export { MeetingActions } from './meeting-actions';
 export type { MeetingActionsProps } from './meeting-actions';
 
 export { MeetingDetailSkeleton } from './meeting-detail-skeleton';
+
+export { TranscriptSection } from './transcript-section';
+export type { TranscriptSectionProps } from './transcript-section';

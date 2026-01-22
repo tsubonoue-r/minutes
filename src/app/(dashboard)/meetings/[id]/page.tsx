@@ -22,6 +22,7 @@ import {
   RecordingsList,
   MeetingActions,
   MeetingDetailSkeleton,
+  TranscriptSection,
 } from './_components';
 import type { ParticipantData } from './_components/participants-list';
 import type { RecordingData } from './_components/recordings-list';
@@ -408,6 +409,12 @@ export default function MeetingDetailPage(): JSX.Element {
               recordings={recordings}
               isLoading={state.recordingsLoading}
               error={state.recordingsError}
+            />
+
+            {/* Transcript Section */}
+            <TranscriptSection
+              meetingId={meeting.id}
+              meetingTitle={meeting.title}
             />
           </div>
 

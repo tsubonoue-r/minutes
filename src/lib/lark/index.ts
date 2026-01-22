@@ -41,5 +41,21 @@ export {
   type PaginationOptions,
 } from './meeting';
 
+// Transcript Service
+export {
+  TranscriptClient,
+  TranscriptNotFoundError,
+  TranscriptApiError,
+  createTranscriptClient,
+  transformLarkSpeaker,
+  transformLarkTranscriptSegment,
+  transformLarkTranscript,
+  extractUniqueSpeakers,
+  calculateTotalDuration,
+  type Speaker,
+  type TranscriptSegment,
+  type Transcript,
+} from './transcript';
+
 // Types
 export * from './types';
