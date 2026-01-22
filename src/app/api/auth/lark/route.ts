@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { createLarkClient } from '@/lib/lark/client';
 import { generateOAuthState, buildAuthorizationUrl } from '@/lib/lark/oauth';
-import { getSessionFromRequest } from '@/lib/session';
+import { getSessionFromCookies } from '@/lib/session';
 import { LarkScopes } from '@/types/lark';
 
 /**
@@ -15,9 +15,8 @@ import { LarkScopes } from '@/types/lark';
  */
 export async function GET(request: Request): Promise<Response> {
   try {
-    // Create response for session handling
-    const response = new Response();
-    const session = await getSessionFromRequest(request, response);
+    // Get session using cookies() - iron-session v8 recommended pattern
+    const session = await getSessionFromCookies();
 
     // Generate CSRF protection state
     const state = generateOAuthState();
@@ -35,18 +34,9 @@ export async function GET(request: Request): Promise<Response> {
 
     const authorizationUrl = buildAuthorizationUrl(config, state, scope);
 
-    // Get session cookie from response
-    const sessionCookie = response.headers.get('set-cookie');
-
-    // Create redirect response
-    const redirectResponse = NextResponse.redirect(authorizationUrl);
-
-    // Preserve session cookie
-    if (sessionCookie !== null) {
-      redirectResponse.headers.set('set-cookie', sessionCookie);
-    }
-
-    return redirectResponse;
+    // Redirect to Lark authorization page
+    // Session cookie is automatically set by iron-session via cookies()
+    return NextResponse.redirect(authorizationUrl);
   } catch (error) {
     console.error('[OAuth Start] Error:', error);
 

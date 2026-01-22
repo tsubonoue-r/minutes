@@ -6,8 +6,8 @@
 import { NextResponse } from 'next/server';
 import { createLarkClient } from '@/lib/lark/client';
 import { refreshAccessToken } from '@/lib/lark/oauth';
-import { getSessionFromRequest } from '@/lib/session';
-import { calculateExpirationTimestamp, checkTokenExpiration } from '@/lib/lark/token';
+import { getSessionFromCookies } from '@/lib/session';
+import { calculateExpirationTimestamp, calculateRefreshTokenExpirationTimestamp, checkTokenExpiration } from '@/lib/lark/token';
 
 /**
  * Response type for token refresh
@@ -22,11 +22,10 @@ interface RefreshResponse {
  * POST /api/auth/lark/refresh
  * Refreshes the user's access token
  */
-export async function POST(request: Request): Promise<Response> {
+export async function POST(): Promise<Response> {
   try {
-    // Create response for session handling
-    const response = new Response();
-    const session = await getSessionFromRequest(request, response);
+    // Get session using cookies() - iron-session v8 recommended pattern
+    const session = await getSessionFromCookies();
 
     // Check if user is authenticated
     if (!session.isAuthenticated || session.refreshToken === undefined) {
@@ -62,47 +61,34 @@ export async function POST(request: Request): Promise<Response> {
       delete session.accessToken;
       delete session.refreshToken;
       delete session.tokenExpiresAt;
+      delete session.refreshTokenExpiresAt;
       await session.save();
 
-      // Get session cookie from response
-      const sessionCookie = response.headers.get('set-cookie');
-      const jsonResponse = NextResponse.json<RefreshResponse>(
+      return NextResponse.json<RefreshResponse>(
         { success: false, message: 'Token refresh failed' },
         { status: 401 }
       );
-
-      if (sessionCookie !== null) {
-        jsonResponse.headers.set('set-cookie', sessionCookie);
-      }
-
-      return jsonResponse;
     }
 
     const { user, token } = result.data;
 
     // Update session with new tokens
+    const now = Date.now();
     session.user = user;
     session.accessToken = token.accessToken;
     session.refreshToken = token.refreshToken;
-    session.tokenExpiresAt = calculateExpirationTimestamp(token);
+    session.tokenExpiresAt = calculateExpirationTimestamp(token, now);
+    session.refreshTokenExpiresAt = calculateRefreshTokenExpirationTimestamp(token, now);
     await session.save();
 
-    // Get session cookie from response
-    const sessionCookie = response.headers.get('set-cookie');
+    console.log('[Token Refresh] Successful for user:', user.name);
 
-    const jsonResponse = NextResponse.json<RefreshResponse>({
+    // Session cookie is automatically set by iron-session via cookies()
+    return NextResponse.json<RefreshResponse>({
       success: true,
       message: 'Token refreshed successfully',
       expiresAt: session.tokenExpiresAt,
     });
-
-    if (sessionCookie !== null) {
-      jsonResponse.headers.set('set-cookie', sessionCookie);
-    }
-
-    console.log('[Token Refresh] Successful for user:', user.name);
-
-    return jsonResponse;
   } catch (error) {
     console.error('[Token Refresh] Error:', error);
 

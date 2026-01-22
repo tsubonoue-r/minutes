@@ -75,6 +75,20 @@ export function calculateExpirationTimestamp(
 }
 
 /**
+ * Calculate the refresh token expiration timestamp
+ *
+ * @param tokenInfo - Token information
+ * @param createdAt - When the token was created (defaults to now)
+ * @returns Refresh token expiration timestamp in milliseconds
+ */
+export function calculateRefreshTokenExpirationTimestamp(
+  tokenInfo: TokenInfo,
+  createdAt: number = Date.now()
+): number {
+  return createdAt + tokenInfo.refreshTokenExpiresIn * 1000;
+}
+
+/**
  * Token storage interface for different storage backends
  */
 export interface TokenStorage {
