@@ -355,6 +355,90 @@ export const LarkVCApiEndpoints = {
   PARTICIPANT_LIST: '/open-apis/vc/v1/meetings/:meeting_id/participants',
   /** List meeting recordings */
   RECORDING_LIST: '/open-apis/vc/v1/meetings/:meeting_id/recordings',
+  /** Get meeting transcript */
+  TRANSCRIPT_GET: '/open-apis/vc/v1/meetings/:meeting_id/transcript',
 } as const;
 
 export type LarkVCApiEndpoint = (typeof LarkVCApiEndpoints)[keyof typeof LarkVCApiEndpoints];
+
+// =============================================================================
+// Lark VC Transcript API Types
+// =============================================================================
+
+/**
+ * Speaker information in transcript segment
+ */
+export const larkSpeakerSchema = z.object({
+  /** User ID of the speaker */
+  user_id: z.string(),
+  /** Display name of the speaker */
+  name: z.string(),
+});
+
+export type LarkSpeaker = z.infer<typeof larkSpeakerSchema>;
+
+/**
+ * Single transcript segment
+ */
+export const larkTranscriptSegmentSchema = z.object({
+  /** Unique segment identifier */
+  segment_id: z.string(),
+  /** Start time in milliseconds from meeting start */
+  start_time: z.number(),
+  /** End time in milliseconds from meeting start */
+  end_time: z.number(),
+  /** Speaker information */
+  speaker: larkSpeakerSchema,
+  /** Transcribed text content */
+  text: z.string(),
+  /** Confidence score (0.0 - 1.0) */
+  confidence: z.number().min(0).max(1).optional(),
+});
+
+export type LarkTranscriptSegment = z.infer<typeof larkTranscriptSegmentSchema>;
+
+/**
+ * Supported transcript languages
+ */
+export const larkTranscriptLanguageSchema = z.enum([
+  'ja',
+  'en',
+  'zh',
+  'ko',
+  'de',
+  'fr',
+  'es',
+  'pt',
+  'it',
+  'ru',
+]);
+
+export type LarkTranscriptLanguage = z.infer<typeof larkTranscriptLanguageSchema>;
+
+/**
+ * Complete transcript data for a meeting
+ */
+export const larkTranscriptSchema = z.object({
+  /** Meeting ID */
+  meeting_id: z.string(),
+  /** Transcript language */
+  language: larkTranscriptLanguageSchema.optional(),
+  /** Array of transcript segments */
+  segments: z.array(larkTranscriptSegmentSchema),
+});
+
+export type LarkTranscript = z.infer<typeof larkTranscriptSchema>;
+
+/**
+ * Transcript response data from Lark API
+ */
+export const larkTranscriptDataSchema = larkTranscriptSchema;
+
+export type LarkTranscriptData = z.infer<typeof larkTranscriptDataSchema>;
+
+/**
+ * Transcript API response
+ */
+export const larkTranscriptResponseSchema = larkApiResponseSchema(larkTranscriptDataSchema);
+
+export type LarkTranscriptResponse = z.infer<typeof larkTranscriptResponseSchema>;
