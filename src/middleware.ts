@@ -69,13 +69,32 @@ async function getSession(request: NextRequest): Promise<SessionData | null> {
 }
 
 /**
- * Check if user is authenticated
- * DEV_SKIP_AUTH=true で認証をスキップ可能
+ * Check if request has valid API Key
  */
-function isAuthenticated(session: SessionData | null): boolean {
+function hasValidApiKey(request: NextRequest): boolean {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) return false;
+
+  // Check header first, then query param
+  const headerKey = request.headers.get('x-api-key');
+  const queryKey = request.nextUrl.searchParams.get('api_key');
+
+  return headerKey === apiKey || queryKey === apiKey;
+}
+
+/**
+ * Check if user is authenticated
+ * 優先順位: 1. API Key, 2. DEV_SKIP_AUTH, 3. Session
+ */
+function isAuthenticated(request: NextRequest, session: SessionData | null): boolean {
+  // API Key認証（最優先）
+  if (hasValidApiKey(request)) {
+    console.log('[Middleware] API Key authentication successful');
+    return true;
+  }
+
   // 開発用: 認証スキップ（本番環境では無効）
   const devSkipAuth = process.env.DEV_SKIP_AUTH;
-
   if (devSkipAuth === 'true' && process.env.NODE_ENV !== 'production') {
     console.log('[Middleware] DEV_SKIP_AUTH=true: Authentication bypassed');
     return true;
@@ -135,7 +154,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   // Get session
   const session = await getSession(request);
-  const authenticated = isAuthenticated(session);
+  const authenticated = isAuthenticated(request, session);
 
   // Protected routes - require authentication
   if (matchesPattern(pathname, PROTECTED_ROUTES)) {
