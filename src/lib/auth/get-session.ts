@@ -81,7 +81,7 @@ const DEV_MOCK_USER: LarkUser = {
   unionId: 'dev-union-001',
   name: 'Dev User',
   email: 'dev@example.com',
-  avatarUrl: 'https://example.com/avatar.png',
+  avatarUrl: '', // 開発用: 空文字でデフォルトアバターを使用
   tenantKey: 'dev-tenant-001',
 };
 
