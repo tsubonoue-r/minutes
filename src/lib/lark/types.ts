@@ -442,3 +442,229 @@ export type LarkTranscriptData = z.infer<typeof larkTranscriptDataSchema>;
 export const larkTranscriptResponseSchema = larkApiResponseSchema(larkTranscriptDataSchema);
 
 export type LarkTranscriptResponse = z.infer<typeof larkTranscriptResponseSchema>;
+
+// =============================================================================
+// Lark Docs API Types
+// =============================================================================
+
+/**
+ * Document information
+ */
+export const larkDocumentSchema = z.object({
+  /** Document ID */
+  document_id: z.string(),
+  /** Document title */
+  title: z.string(),
+  /** Document URL */
+  url: z.string(),
+});
+
+export type LarkDocument = z.infer<typeof larkDocumentSchema>;
+
+/**
+ * Document creation response data
+ */
+export const larkDocCreateDataSchema = z.object({
+  /** Created document information */
+  document: larkDocumentSchema,
+});
+
+export type LarkDocCreateData = z.infer<typeof larkDocCreateDataSchema>;
+
+/**
+ * Document creation response
+ */
+export const larkDocCreateResponseSchema = larkApiResponseSchema(larkDocCreateDataSchema);
+
+export type LarkDocCreateResponse = z.infer<typeof larkDocCreateResponseSchema>;
+
+/**
+ * Permission member types
+ */
+export const larkPermissionMemberTypeSchema = z.enum(['email', 'openid', 'userid']);
+
+export type LarkPermissionMemberType = z.infer<typeof larkPermissionMemberTypeSchema>;
+
+/**
+ * Permission levels
+ */
+export const larkPermissionLevelSchema = z.enum(['view', 'edit', 'full_access']);
+
+export type LarkPermissionLevel = z.infer<typeof larkPermissionLevelSchema>;
+
+/**
+ * Permission member request for adding permissions
+ */
+export const larkPermissionMemberRequestSchema = z.object({
+  /** Member type: email, openid, or userid */
+  member_type: larkPermissionMemberTypeSchema,
+  /** Member identifier */
+  member_id: z.string(),
+  /** Permission level */
+  perm: larkPermissionLevelSchema,
+});
+
+export type LarkPermissionMemberRequest = z.infer<typeof larkPermissionMemberRequestSchema>;
+
+/**
+ * Permission member response data
+ */
+export const larkPermissionMemberDataSchema = z.object({
+  /** Created member information */
+  member: z.object({
+    member_type: larkPermissionMemberTypeSchema,
+    member_id: z.string(),
+    perm: larkPermissionLevelSchema,
+  }),
+});
+
+export type LarkPermissionMemberData = z.infer<typeof larkPermissionMemberDataSchema>;
+
+/**
+ * Permission member response
+ */
+export const larkPermissionMemberResponseSchema = larkApiResponseSchema(
+  larkPermissionMemberDataSchema
+);
+
+export type LarkPermissionMemberResponse = z.infer<typeof larkPermissionMemberResponseSchema>;
+
+/**
+ * Mount types for document import
+ */
+export const larkMountTypeSchema = z.union([
+  z.literal(1), // My Drive
+  z.literal(2), // Shared folder
+]);
+
+export type LarkMountType = z.infer<typeof larkMountTypeSchema>;
+
+/**
+ * Document import file extensions
+ */
+export const larkDocImportExtensionSchema = z.enum(['docx', 'doc', 'md']);
+
+export type LarkDocImportExtension = z.infer<typeof larkDocImportExtensionSchema>;
+
+/**
+ * Document import point (destination)
+ */
+export const larkDocImportPointSchema = z.object({
+  /** Mount type: 1 = My Drive, 2 = Shared folder */
+  mount_type: larkMountTypeSchema,
+  /** Folder token for destination */
+  mount_key: z.string(),
+});
+
+export type LarkDocImportPoint = z.infer<typeof larkDocImportPointSchema>;
+
+/**
+ * Document import request
+ */
+export const larkDocImportRequestSchema = z.object({
+  /** File extension */
+  file_extension: larkDocImportExtensionSchema,
+  /** File token (for existing files) */
+  file_token: z.string().optional(),
+  /** File name */
+  file_name: z.string(),
+  /** Destination point */
+  point: larkDocImportPointSchema,
+});
+
+export type LarkDocImportRequest = z.infer<typeof larkDocImportRequestSchema>;
+
+/**
+ * Import task status
+ */
+export const larkImportTaskStatusSchema = z.enum([
+  'processing',
+  'success',
+  'failed',
+]);
+
+export type LarkImportTaskStatus = z.infer<typeof larkImportTaskStatusSchema>;
+
+/**
+ * Import task response data
+ */
+export const larkImportTaskDataSchema = z.object({
+  /** Import task ticket */
+  ticket: z.string(),
+});
+
+export type LarkImportTaskData = z.infer<typeof larkImportTaskDataSchema>;
+
+/**
+ * Import task response
+ */
+export const larkImportTaskResponseSchema = larkApiResponseSchema(larkImportTaskDataSchema);
+
+export type LarkImportTaskResponse = z.infer<typeof larkImportTaskResponseSchema>;
+
+/**
+ * Import task result data
+ */
+export const larkImportTaskResultDataSchema = z.object({
+  /** Task result */
+  result: z.object({
+    /** Task ticket */
+    ticket: z.string(),
+    /** Task type */
+    type: z.string(),
+    /** Job status */
+    job_status: z.number(),
+    /** Job error message */
+    job_error_msg: z.string().optional(),
+    /** Token of the created document */
+    token: z.string().optional(),
+    /** URL of the created document */
+    url: z.string().optional(),
+    /** Extra information */
+    extra: z.array(z.string()).optional(),
+  }),
+});
+
+export type LarkImportTaskResultData = z.infer<typeof larkImportTaskResultDataSchema>;
+
+/**
+ * Import task result response
+ */
+export const larkImportTaskResultResponseSchema = larkApiResponseSchema(
+  larkImportTaskResultDataSchema
+);
+
+export type LarkImportTaskResultResponse = z.infer<typeof larkImportTaskResultResponseSchema>;
+
+/**
+ * File upload response data
+ */
+export const larkFileUploadDataSchema = z.object({
+  /** Uploaded file token */
+  file_token: z.string(),
+});
+
+export type LarkFileUploadData = z.infer<typeof larkFileUploadDataSchema>;
+
+/**
+ * File upload response
+ */
+export const larkFileUploadResponseSchema = larkApiResponseSchema(larkFileUploadDataSchema);
+
+export type LarkFileUploadResponse = z.infer<typeof larkFileUploadResponseSchema>;
+
+/**
+ * Lark Docs API endpoints
+ */
+export const LarkDocsApiEndpoints = {
+  /** Create import task */
+  IMPORT_TASK_CREATE: '/open-apis/drive/v1/import_tasks',
+  /** Get import task result */
+  IMPORT_TASK_GET: '/open-apis/drive/v1/import_tasks/:ticket',
+  /** Upload file */
+  FILE_UPLOAD: '/open-apis/drive/v1/files/upload_all',
+  /** Add permission member */
+  PERMISSION_MEMBER_CREATE: '/open-apis/drive/v1/permissions/:token/members',
+} as const;
+
+export type LarkDocsApiEndpoint = (typeof LarkDocsApiEndpoints)[keyof typeof LarkDocsApiEndpoints];

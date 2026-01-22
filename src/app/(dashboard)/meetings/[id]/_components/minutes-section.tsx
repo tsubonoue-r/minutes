@@ -1,6 +1,7 @@
 /**
  * Minutes Section Component
  * Fetches and displays meeting minutes with generation capability
+ * Includes export to Lark Docs functionality
  * @module app/(dashboard)/meetings/[id]/_components/minutes-section
  */
 
@@ -13,7 +14,9 @@ import {
   type GenerationState,
   type GenerationStatus,
 } from '@/components/minutes';
+import { ExportButton } from '@/components/export';
 import type { Minutes } from '@/types/minutes';
+import type { ExportResult } from '@/types/export';
 
 // =============================================================================
 // Types
@@ -65,6 +68,21 @@ export interface MinutesSectionProps {
 }
 
 /**
+ * Export state type
+ */
+type ExportStateStatus = 'idle' | 'exporting' | 'success' | 'error';
+
+/**
+ * Export state interface
+ */
+interface ExportState {
+  readonly status: ExportStateStatus;
+  readonly documentUrl?: string | undefined;
+  readonly documentTitle?: string | undefined;
+  readonly error?: string | undefined;
+}
+
+/**
  * Component state interface
  */
 interface ComponentState {
@@ -72,7 +90,15 @@ interface ComponentState {
   readonly isLoading: boolean;
   readonly error: string | null;
   readonly generationState: GenerationState;
+  readonly exportState: ExportState;
 }
+
+/**
+ * Initial export state
+ */
+const initialExportState: ExportState = {
+  status: 'idle',
+};
 
 /**
  * Initial component state
@@ -82,6 +108,7 @@ const initialState: ComponentState = {
   isLoading: true,
   error: null,
   generationState: { status: 'idle' },
+  exportState: initialExportState,
 };
 
 // =============================================================================
@@ -126,6 +153,190 @@ function NoTranscriptMessage({
         To generate meeting minutes, a transcript is required.
         Please ensure the meeting has a transcript available.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Export success toast component
+ */
+function ExportSuccessToast({
+  documentUrl,
+  documentTitle,
+  onClose,
+}: {
+  readonly documentUrl: string;
+  readonly documentTitle: string;
+  readonly onClose: () => void;
+}): JSX.Element {
+  return (
+    <div
+      className="
+        fixed bottom-4 right-4 z-50
+        bg-white dark:bg-slate-800
+        border border-green-200 dark:border-green-700
+        rounded-lg shadow-lg p-4
+        max-w-sm animate-slide-in-up
+      "
+      role="alert"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0">
+          <svg
+            className="w-6 h-6 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-900 dark:text-white">
+            Export Successful
+          </p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 truncate mt-1">
+            {documentTitle}
+          </p>
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              inline-flex items-center gap-1 mt-2
+              text-sm text-blue-600 hover:text-blue-700
+              dark:text-blue-400 dark:hover:text-blue-300
+            "
+          >
+            Open in Lark Docs
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="
+            flex-shrink-0 p-1 rounded-md
+            text-gray-400 hover:text-gray-500
+            dark:text-slate-500 dark:hover:text-slate-400
+            focus:outline-none focus:ring-2 focus:ring-blue-500
+          "
+          aria-label="Close notification"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Export error toast component
+ */
+function ExportErrorToast({
+  message,
+  onClose,
+}: {
+  readonly message: string;
+  readonly onClose: () => void;
+}): JSX.Element {
+  return (
+    <div
+      className="
+        fixed bottom-4 right-4 z-50
+        bg-white dark:bg-slate-800
+        border border-red-200 dark:border-red-700
+        rounded-lg shadow-lg p-4
+        max-w-sm animate-slide-in-up
+      "
+      role="alert"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0">
+          <svg
+            className="w-6 h-6 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-900 dark:text-white">
+            Export Failed
+          </p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            {message}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="
+            flex-shrink-0 p-1 rounded-md
+            text-gray-400 hover:text-gray-500
+            dark:text-slate-500 dark:hover:text-slate-400
+            focus:outline-none focus:ring-2 focus:ring-red-500
+          "
+          aria-label="Close notification"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
@@ -234,6 +445,7 @@ export function MinutesSection({
           isLoading: false,
           error: null,
           generationState: { status: 'idle' },
+          exportState: initialExportState,
         });
         return;
       }
@@ -249,6 +461,7 @@ export function MinutesSection({
         isLoading: false,
         error: null,
         generationState: { status: data.data !== undefined ? 'completed' : 'idle' },
+        exportState: initialExportState,
       });
     } catch (error) {
       const message =
@@ -258,6 +471,7 @@ export function MinutesSection({
         isLoading: false,
         error: message,
         generationState: { status: 'error', error: message },
+        exportState: initialExportState,
       });
     }
   }, [meetingId]);
@@ -334,6 +548,7 @@ export function MinutesSection({
         isLoading: false,
         error: null,
         generationState: { status: 'completed' },
+        exportState: initialExportState,
       });
     } catch (error) {
       isCancelled = true; // Stop progress simulation
@@ -376,6 +591,59 @@ export function MinutesSection({
   const handleRegenerate = useCallback((): void => {
     void generateMinutes();
   }, [generateMinutes]);
+
+  /**
+   * Handle export complete
+   */
+  const handleExportComplete = useCallback((result: ExportResult): void => {
+    setState((prev) => ({
+      ...prev,
+      exportState: {
+        status: 'success',
+        documentUrl: result.documentUrl,
+        documentTitle: result.documentTitle,
+      },
+    }));
+
+    // Auto-hide success toast after 10 seconds
+    setTimeout(() => {
+      setState((prev) => ({
+        ...prev,
+        exportState: initialExportState,
+      }));
+    }, 10000);
+  }, []);
+
+  /**
+   * Handle export error
+   */
+  const handleExportError = useCallback((error: Error): void => {
+    setState((prev) => ({
+      ...prev,
+      exportState: {
+        status: 'error',
+        error: error.message,
+      },
+    }));
+
+    // Auto-hide error toast after 8 seconds
+    setTimeout(() => {
+      setState((prev) => ({
+        ...prev,
+        exportState: initialExportState,
+      }));
+    }, 8000);
+  }, []);
+
+  /**
+   * Handle export toast close
+   */
+  const handleExportToastClose = useCallback((): void => {
+    setState((prev) => ({
+      ...prev,
+      exportState: initialExportState,
+    }));
+  }, []);
 
   // Fetch minutes on mount and when meetingId changes
   useEffect(() => {
@@ -430,12 +698,51 @@ export function MinutesSection({
     onRegenerate: handleRegenerate,
   };
 
+  // Determine if export button should be shown
+  const showExportButton = state.minutes !== null && !state.isLoading;
+
   return (
     <section className={className} aria-label="Minutes section">
-      <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Minutes
-      </h2>
+      {/* Header with title and export button */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Minutes
+        </h2>
+        {showExportButton && state.minutes !== null && (
+          <ExportButton
+            minutesId={state.minutes.id}
+            minutesTitle={state.minutes.title}
+            attendees={state.minutes.attendees}
+            onExportComplete={handleExportComplete}
+            onExportError={handleExportError}
+            variant="secondary"
+            size="sm"
+          />
+        )}
+      </div>
+
+      {/* Minutes viewer */}
       <MinutesViewer {...viewerProps} />
+
+      {/* Export success toast */}
+      {state.exportState.status === 'success' &&
+        state.exportState.documentUrl !== undefined &&
+        state.exportState.documentTitle !== undefined && (
+          <ExportSuccessToast
+            documentUrl={state.exportState.documentUrl}
+            documentTitle={state.exportState.documentTitle}
+            onClose={handleExportToastClose}
+          />
+        )}
+
+      {/* Export error toast */}
+      {state.exportState.status === 'error' &&
+        state.exportState.error !== undefined && (
+          <ExportErrorToast
+            message={state.exportState.error}
+            onClose={handleExportToastClose}
+          />
+        )}
     </section>
   );
 }
