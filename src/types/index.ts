@@ -57,3 +57,6 @@ export {
   validateSpeaker as validateMinutesSpeaker,
   validateDecisionItem,
 } from './minutes';
+
+// Export types
+export * from './export';

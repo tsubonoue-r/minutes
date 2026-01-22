@@ -57,5 +57,17 @@ export {
   type Transcript,
 } from './transcript';
 
+// Docs Service
+export {
+  DocsClient,
+  DocsApiError,
+  DocsImportTimeoutError,
+  DocsImportError,
+  createDocsClient,
+  type CreateDocFromMarkdownOptions,
+  type CreateDocResult,
+  type PermissionMember,
+} from './docs';
+
 // Types
 export * from './types';
