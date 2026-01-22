@@ -19,3 +19,6 @@ export { MeetingDetailSkeleton } from './meeting-detail-skeleton';
 
 export { TranscriptSection } from './transcript-section';
 export type { TranscriptSectionProps } from './transcript-section';
+
+export { MinutesSection } from './minutes-section';
+export type { MinutesSectionProps } from './minutes-section';

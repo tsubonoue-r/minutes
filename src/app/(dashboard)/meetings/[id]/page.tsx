@@ -23,6 +23,7 @@ import {
   MeetingActions,
   MeetingDetailSkeleton,
   TranscriptSection,
+  MinutesSection,
 } from './_components';
 import type { ParticipantData } from './_components/participants-list';
 import type { RecordingData } from './_components/recordings-list';
@@ -95,6 +96,8 @@ interface PageState {
   readonly recordingsError: string | null;
   readonly participantsLoading: boolean;
   readonly recordingsLoading: boolean;
+  readonly hasTranscript: boolean;
+  readonly transcriptLoading: boolean;
 }
 
 /**
@@ -110,6 +113,8 @@ const initialState: PageState = {
   recordingsError: null,
   participantsLoading: true,
   recordingsLoading: true,
+  hasTranscript: false,
+  transcriptLoading: true,
 };
 
 /**
@@ -323,6 +328,50 @@ export default function MeetingDetailPage(): JSX.Element {
   }, [meetingId]);
 
   /**
+   * Check if transcript exists for the meeting
+   */
+  const checkTranscript = useCallback(async (): Promise<void> => {
+    try {
+      setState((prev) => ({ ...prev, transcriptLoading: true }));
+
+      const response = await fetch(`/api/meetings/${meetingId}/transcript`);
+
+      // 404 means no transcript
+      if (response.status === 404) {
+        setState((prev) => ({
+          ...prev,
+          hasTranscript: false,
+          transcriptLoading: false,
+        }));
+        return;
+      }
+
+      // Any successful response means transcript exists
+      if (response.ok) {
+        setState((prev) => ({
+          ...prev,
+          hasTranscript: true,
+          transcriptLoading: false,
+        }));
+        return;
+      }
+
+      // Other errors - assume no transcript
+      setState((prev) => ({
+        ...prev,
+        hasTranscript: false,
+        transcriptLoading: false,
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        hasTranscript: false,
+        transcriptLoading: false,
+      }));
+    }
+  }, [meetingId]);
+
+  /**
    * Retry fetching all data
    */
   const handleRetry = useCallback((): void => {
@@ -330,7 +379,8 @@ export default function MeetingDetailPage(): JSX.Element {
     void fetchMeeting();
     void fetchParticipants();
     void fetchRecordings();
-  }, [fetchMeeting, fetchParticipants, fetchRecordings]);
+    void checkTranscript();
+  }, [fetchMeeting, fetchParticipants, fetchRecordings, checkTranscript]);
 
   /**
    * Handle generate minutes action
@@ -345,7 +395,8 @@ export default function MeetingDetailPage(): JSX.Element {
     void fetchMeeting();
     void fetchParticipants();
     void fetchRecordings();
-  }, [fetchMeeting, fetchParticipants, fetchRecordings]);
+    void checkTranscript();
+  }, [fetchMeeting, fetchParticipants, fetchRecordings, checkTranscript]);
 
   // Show loading state
   if (state.isLoading) {
@@ -415,6 +466,13 @@ export default function MeetingDetailPage(): JSX.Element {
             <TranscriptSection
               meetingId={meeting.id}
               meetingTitle={meeting.title}
+            />
+
+            {/* Minutes Section */}
+            <MinutesSection
+              meetingId={meeting.id}
+              meetingTitle={meeting.title}
+              hasTranscript={state.hasTranscript}
             />
           </div>
 
