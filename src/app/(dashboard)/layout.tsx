@@ -21,6 +21,7 @@ interface DashboardLayoutProps {
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/meetings', label: 'Meetings' },
+  { href: '/action-items', label: 'Action Items' },
   { href: '/settings', label: 'Settings' },
 ] as const;
 

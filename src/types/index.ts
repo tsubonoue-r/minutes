@@ -60,3 +60,54 @@ export {
 
 // Export types
 export * from './export';
+
+// Action Item extended types - for action item management
+// Note: Some types use aliases to avoid collisions with component types
+export {
+  // Zod Schemas
+  ManagedActionItemSchema,
+  ActionItemFiltersSchema as ActionItemFiltersDataSchema,
+  ActionItemSortFieldSchema,
+  SortOrderSchema,
+  ActionItemSortOptionsSchema as ActionItemSortOptionsDataSchema,
+  ActionItemPaginationSchema,
+  ActionItemListResponseSchema,
+  ActionItemStatusUpdateSchema,
+  ActionItemStatsSchema as ActionItemStatsDataSchema,
+  // Types
+  type ManagedActionItem as ManagedActionItemData,
+  type ActionItemFilters as ActionItemFiltersData,
+  type ActionItemSortField as ActionItemSortFieldData,
+  type SortOrder,
+  type ActionItemSortOptions as ActionItemSortOptionsData,
+  type ActionItemPagination,
+  type ActionItemListResponse,
+  type ActionItemStatusUpdate,
+  type ActionItemStats as ActionItemStatsData,
+  type ReadonlyManagedActionItem,
+  type ReadonlyActionItemFilters,
+  type ReadonlyActionItemStats,
+  type MeetingInfo,
+  // Utility functions
+  isActionItemOverdue,
+  sortByPriority,
+  sortByDueDate,
+  filterActionItems,
+  toManagedActionItem,
+  getDaysUntilDue,
+  getActionItemStats,
+  sortManagedActionItems,
+  createPagination,
+  paginateItems,
+  createActionItemListResponse,
+  refreshOverdueStatus,
+  createManagedActionItem,
+  // Validation functions
+  validateManagedActionItem,
+  validateActionItemFilters,
+  validateActionItemSortOptions,
+  validateActionItemPagination,
+  validateActionItemListResponse,
+  validateActionItemStatusUpdate,
+  validateActionItemStats,
+} from './action-item';

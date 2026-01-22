@@ -54,6 +54,15 @@ interface GenerateMinutesApiResponse {
 }
 
 /**
+ * Meeting info for action item saving
+ */
+interface MeetingInfo {
+  readonly id: string;
+  readonly title: string;
+  readonly date: string;
+}
+
+/**
  * Props for MinutesSection component
  */
 export interface MinutesSectionProps {
@@ -61,6 +70,8 @@ export interface MinutesSectionProps {
   readonly meetingId: string;
   /** Meeting title for display */
   readonly meetingTitle: string;
+  /** Meeting date in ISO format (YYYY-MM-DD) */
+  readonly meetingDate: string;
   /** Whether the meeting has a transcript */
   readonly hasTranscript: boolean;
   /** Additional CSS classes */
@@ -421,13 +432,34 @@ function MinutesError({
  */
 export function MinutesSection({
   meetingId,
-  meetingTitle: _meetingTitle,
+  meetingTitle,
+  meetingDate,
   hasTranscript,
   className = '',
 }: MinutesSectionProps): JSX.Element {
-  // Note: meetingTitle is available for future use (e.g., displaying meeting context)
-  void _meetingTitle;
   const [state, setState] = useState<ComponentState>(initialState);
+
+  /**
+   * Save action items to API
+   */
+  const saveActionItems = useCallback(
+    async (minutes: Minutes, meeting: MeetingInfo): Promise<void> => {
+      try {
+        const response = await fetch('/api/action-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ minutes, meeting }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to save action items:', await response.text());
+        }
+      } catch (error) {
+        console.error('Error saving action items:', error);
+      }
+    },
+    []
+  );
 
   /**
    * Fetch existing minutes from API
@@ -543,13 +575,24 @@ export function MinutesSection({
         throw new Error('Invalid response: minutes data is missing');
       }
 
+      const generatedMinutes = data.data.minutes;
+
       setState({
-        minutes: data.data.minutes,
+        minutes: generatedMinutes,
         isLoading: false,
         error: null,
         generationState: { status: 'completed' },
         exportState: initialExportState,
       });
+
+      // Save action items to API if any exist
+      if (generatedMinutes.actionItems.length > 0) {
+        void saveActionItems(generatedMinutes, {
+          id: meetingId,
+          title: meetingTitle,
+          date: meetingDate,
+        });
+      }
     } catch (error) {
       isCancelled = true; // Stop progress simulation
       const message =
@@ -563,7 +606,7 @@ export function MinutesSection({
         },
       }));
     }
-  }, [meetingId]);
+  }, [meetingId, meetingTitle, meetingDate, saveActionItems]);
 
   /**
    * Handle retry action
@@ -696,6 +739,7 @@ export function MinutesSection({
     generationState: state.generationState,
     onGenerate: handleGenerate,
     onRegenerate: handleRegenerate,
+    enableApiSync: true,
   };
 
   // Determine if export button should be shown

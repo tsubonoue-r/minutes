@@ -472,6 +472,7 @@ export default function MeetingDetailPage(): JSX.Element {
             <MinutesSection
               meetingId={meeting.id}
               meetingTitle={meeting.title}
+              meetingDate={meeting.startTime.split('T')[0] ?? ''}
               hasTranscript={state.hasTranscript}
             />
           </div>
