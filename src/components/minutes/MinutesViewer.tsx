@@ -40,6 +40,8 @@ export interface MinutesViewerProps {
   readonly onTopicClick?: ((topic: TopicSegment) => void) | undefined;
   /** Callback when action item status changes */
   readonly onActionStatusChange?: ((id: string, status: ActionItemStatus) => void) | undefined;
+  /** Whether to sync action item status changes with API */
+  readonly enableApiSync?: boolean | undefined;
   /** Initial active tab */
   readonly initialTab?: MinutesTab | undefined;
   /** Custom class name */
@@ -126,6 +128,7 @@ function MinutesViewerInner({
   onRegenerate,
   onTopicClick,
   onActionStatusChange,
+  enableApiSync = false,
   initialTab = 'topics',
   className = '',
 }: MinutesViewerProps): JSX.Element {
@@ -376,11 +379,41 @@ function MinutesViewerInner({
         )}
 
         {activeTab === 'actions' && (
-          <ActionItemList
-            actionItems={minutes.actionItems}
-            showFilters={true}
-            onStatusChange={onActionStatusChange}
-          />
+          <>
+            <ActionItemList
+              actionItems={minutes.actionItems}
+              showFilters={true}
+              onStatusChange={onActionStatusChange}
+              enableApiSync={enableApiSync}
+            />
+            {/* Link to all action items page */}
+            <div className="mt-4 pt-4 border-t border-lark-border">
+              <a
+                href="/action-items"
+                className="
+                  inline-flex items-center gap-2
+                  text-sm text-lark-primary hover:text-lark-primary-dark
+                  transition-colors
+                "
+              >
+                View all action items
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </a>
+            </div>
+          </>
         )}
       </div>
 

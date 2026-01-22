@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useCallback, useMemo } from 'react';
+import { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import { Avatar, Badge } from '@/components/ui';
 import type {
   ActionItem,
@@ -382,6 +382,8 @@ export interface ActionItemListProps {
   readonly showFilters?: boolean | undefined;
   /** Callback when an item's status is changed */
   readonly onStatusChange?: ((id: string, status: ActionItemStatus) => void) | undefined;
+  /** Whether to sync status changes with API */
+  readonly enableApiSync?: boolean | undefined;
   /** Custom class name */
   readonly className?: string | undefined;
 }
@@ -403,27 +405,105 @@ export function ActionItemList({
   actionItems,
   showFilters = false,
   onStatusChange,
+  enableApiSync = false,
   className = '',
 }: ActionItemListProps): JSX.Element {
   const [filters, setFilters] = useState<ActionItemFilterOptions>({
     status: 'all',
     assigneeId: 'all',
   });
+  const [localItems, setLocalItems] = useState<readonly ActionItem[]>(actionItems);
+  const [isUpdating, setIsUpdating] = useState<Set<string>>(new Set());
+
+  // Sync localItems when actionItems prop changes
+  useEffect(() => {
+    setLocalItems(actionItems);
+  }, [actionItems]);
+
+  /**
+   * Handle status change with optimistic update and API sync
+   */
+  const handleStatusChangeWithSync = useCallback(
+    async (id: string, newStatus: ActionItemStatus): Promise<void> => {
+      // Find original item for potential rollback
+      const originalItem = localItems.find((item) => item.id === id);
+      if (originalItem === undefined) return;
+
+      const originalStatus = originalItem.status;
+
+      // Optimistic update
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: newStatus } : item
+        )
+      );
+
+      // Mark item as updating
+      setIsUpdating((prev) => new Set(prev).add(id));
+
+      // Call parent callback if provided
+      onStatusChange?.(id, newStatus);
+
+      // Sync with API if enabled
+      if (enableApiSync) {
+        try {
+          const response = await fetch(`/api/action-items/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus }),
+          });
+
+          if (!response.ok) {
+            // Rollback on error
+            setLocalItems((prev) =>
+              prev.map((item) =>
+                item.id === id ? { ...item, status: originalStatus } : item
+              )
+            );
+            console.error('Failed to update action item status');
+          }
+        } catch (error) {
+          // Rollback on error
+          setLocalItems((prev) =>
+            prev.map((item) =>
+              item.id === id ? { ...item, status: originalStatus } : item
+            )
+          );
+          console.error('Error updating action item status:', error);
+        }
+      }
+
+      // Remove updating state
+      setIsUpdating((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    },
+    [localItems, onStatusChange, enableApiSync]
+  );
+
+  // Use either API-synced handler or simple handler
+  const effectiveOnStatusChange = enableApiSync
+    ? (id: string, status: ActionItemStatus): void => {
+        void handleStatusChangeWithSync(id, status);
+      }
+    : onStatusChange;
 
   // Get unique assignees
   const uniqueAssignees = useMemo(() => {
     const assigneeMap = new Map<string, Speaker>();
-    for (const item of actionItems) {
+    for (const item of localItems) {
       if (item.assignee !== undefined && !assigneeMap.has(item.assignee.id)) {
         assigneeMap.set(item.assignee.id, item.assignee);
       }
     }
     return Array.from(assigneeMap.values());
-  }, [actionItems]);
+  }, [localItems]);
 
   // Filter action items
   const filteredItems = useMemo(() => {
-    return actionItems.filter((item) => {
+    return localItems.filter((item) => {
       // Filter by status
       if (filters.status !== undefined && filters.status !== 'all') {
         if (item.status !== filters.status) {
@@ -440,9 +520,9 @@ export function ActionItemList({
 
       return true;
     });
-  }, [actionItems, filters]);
+  }, [localItems, filters]);
 
-  if (actionItems.length === 0) {
+  if (localItems.length === 0) {
     return (
       <div
         className={`
@@ -486,20 +566,20 @@ export function ActionItemList({
       {/* Summary */}
       <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
         <span>
-          {filteredItems.length} of {actionItems.length} items
+          {filteredItems.length} of {localItems.length} items
         </span>
         <span className="text-gray-300">|</span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-green-500" />
-          {actionItems.filter((i) => i.status === 'completed').length} completed
+          {localItems.filter((i) => i.status === 'completed').length} completed
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-yellow-500" />
-          {actionItems.filter((i) => i.status === 'in_progress').length} in progress
+          {localItems.filter((i) => i.status === 'in_progress').length} in progress
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-gray-400" />
-          {actionItems.filter((i) => i.status === 'pending').length} pending
+          {localItems.filter((i) => i.status === 'pending').length} pending
         </span>
       </div>
 
@@ -518,8 +598,13 @@ export function ActionItemList({
             <div key={item.id} role="listitem">
               <ActionItemCard
                 item={item}
-                onStatusChange={onStatusChange}
+                onStatusChange={effectiveOnStatusChange}
               />
+              {isUpdating.has(item.id) && (
+                <div className="text-xs text-gray-400 mt-1 ml-8">
+                  Saving...
+                </div>
+              )}
             </div>
           ))}
         </div>
