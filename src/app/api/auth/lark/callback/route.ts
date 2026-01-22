@@ -6,8 +6,8 @@
 import { NextResponse } from 'next/server';
 import { createLarkClient } from '@/lib/lark/client';
 import { exchangeCodeForToken } from '@/lib/lark/oauth';
-import { getSessionFromRequest } from '@/lib/session';
-import { calculateExpirationTimestamp } from '@/lib/lark/token';
+import { getSessionFromCookies } from '@/lib/session';
+import { calculateExpirationTimestamp, calculateRefreshTokenExpirationTimestamp } from '@/lib/lark/token';
 
 /**
  * GET /api/auth/lark/callback
@@ -37,9 +37,8 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    // Create response for session handling
-    const response = new Response();
-    const session = await getSessionFromRequest(request, response);
+    // Get session using cookies() - iron-session v8 recommended pattern
+    const session = await getSessionFromCookies();
 
     // Verify CSRF state
     if (session.oauthState !== state) {
@@ -69,29 +68,22 @@ export async function GET(request: Request): Promise<Response> {
     const { user, token } = result.data;
 
     // Store authentication data in session
+    const now = Date.now();
     session.isAuthenticated = true;
     session.user = user;
     session.accessToken = token.accessToken;
     session.refreshToken = token.refreshToken;
-    session.tokenExpiresAt = calculateExpirationTimestamp(token);
+    session.tokenExpiresAt = calculateExpirationTimestamp(token, now);
+    session.refreshTokenExpiresAt = calculateRefreshTokenExpirationTimestamp(token, now);
 
     await session.save();
 
-    // Get session cookie from response
-    const sessionCookie = response.headers.get('set-cookie');
-
-    // Redirect to dashboard
-    const dashboardUrl = new URL('/dashboard', request.url);
-    const redirectResponse = NextResponse.redirect(dashboardUrl);
-
-    // Preserve session cookie
-    if (sessionCookie !== null) {
-      redirectResponse.headers.set('set-cookie', sessionCookie);
-    }
-
     console.log('[OAuth Callback] Authentication successful for user:', user.name);
 
-    return redirectResponse;
+    // Redirect to dashboard
+    // Session cookie is automatically set by iron-session via cookies()
+    const dashboardUrl = new URL('/dashboard', request.url);
+    return NextResponse.redirect(dashboardUrl);
   } catch (error) {
     console.error('[OAuth Callback] Error:', error);
     const errorUrl = new URL('/login', request.url);

@@ -4,6 +4,7 @@
  */
 
 import { getIronSession, IronSession } from 'iron-session';
+import { cookies } from 'next/headers';
 import type { SessionData } from '@/types/auth';
 import { defaultSession } from '@/types/auth';
 
@@ -124,5 +125,68 @@ export async function destroySession(
   res: Response
 ): Promise<void> {
   const session = await getSessionFromRequest(req, res);
+  session.destroy();
+}
+
+/**
+ * Get the current session using cookies() from next/headers
+ * This is the recommended pattern for Next.js App Router Route Handlers
+ *
+ * @returns Session object
+ */
+export async function getSessionFromCookies(): Promise<IronSession<SessionData>> {
+  // cookies() returns a Promise in Next.js 14 (becomes sync in Next.js 15)
+  // eslint-disable-next-line @typescript-eslint/await-thenable
+  const cookieStore = await cookies();
+  // Type assertion needed due to Next.js cookies() type incompatibility with iron-session
+  // This is safe as iron-session v8 officially supports Next.js App Router cookies()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+  const session = await getIronSession<SessionData>(cookieStore as any, getSessionOptions());
+
+  if (session.isAuthenticated === undefined) {
+    session.isAuthenticated = defaultSession.isAuthenticated;
+  }
+
+  return session;
+}
+
+/**
+ * Check if request has valid session using cookies()
+ *
+ * @returns Whether the user is authenticated
+ */
+export async function isAuthenticatedFromCookies(): Promise<boolean> {
+  try {
+    const session = await getSessionFromCookies();
+    return session.isAuthenticated === true && session.accessToken !== undefined;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get the current user from session using cookies()
+ *
+ * @returns User object or null if not authenticated
+ */
+export async function getCurrentUserFromCookies(): Promise<SessionData['user'] | null> {
+  try {
+    const session = await getSessionFromCookies();
+
+    if (session.isAuthenticated !== true || session.user === undefined) {
+      return null;
+    }
+
+    return session.user;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Destroy the session (logout) using cookies()
+ */
+export async function destroySessionFromCookies(): Promise<void> {
+  const session = await getSessionFromCookies();
   session.destroy();
 }

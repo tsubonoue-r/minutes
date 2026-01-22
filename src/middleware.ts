@@ -93,9 +93,9 @@ function isAuthenticated(session: SessionData | null): boolean {
 }
 
 /**
- * Check if token is expired
+ * Check if access token is expired or expiring soon
  */
-function isTokenExpired(session: SessionData): boolean {
+function isAccessTokenExpired(session: SessionData): boolean {
   if (session.tokenExpiresAt === undefined) {
     return true;
   }
@@ -103,6 +103,18 @@ function isTokenExpired(session: SessionData): boolean {
   // Add 5 minute buffer
   const bufferMs = 5 * 60 * 1000;
   return Date.now() > session.tokenExpiresAt - bufferMs;
+}
+
+/**
+ * Check if refresh token is expired
+ */
+function isRefreshTokenExpired(session: SessionData): boolean {
+  if (session.refreshTokenExpiresAt === undefined) {
+    // If no refresh token expiration, assume it's valid (backward compatibility)
+    return false;
+  }
+
+  return Date.now() > session.refreshTokenExpiresAt;
 }
 
 /**
@@ -136,28 +148,24 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     // Check if token is expired
     // DEV_SKIP_AUTH が有効な場合はトークン期限切れチェックをスキップ（本番環境では無効）
     const devSkipAuth = process.env.DEV_SKIP_AUTH === 'true' && process.env.NODE_ENV !== 'production';
-    if (!devSkipAuth && session !== null && isTokenExpired(session)) {
-      // Token expired - try refresh or redirect to login
-      const refreshUrl = new URL('/api/auth/lark/refresh', request.url);
+    if (!devSkipAuth && session !== null) {
+      // Check refresh token first - if expired, must re-authenticate
+      if (isRefreshTokenExpired(session)) {
+        console.log('[Middleware] Refresh token expired, redirecting to login');
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        loginUrl.searchParams.set('error', 'session_expired');
+        return NextResponse.redirect(loginUrl);
+      }
 
-      try {
-        const refreshResponse = await fetch(refreshUrl, {
-          method: 'POST',
-          headers: {
-            cookie: request.headers.get('cookie') ?? '',
-          },
-        });
-
-        if (!refreshResponse.ok) {
-          // Refresh failed - redirect to login
-          const loginUrl = new URL('/login', request.url);
-          loginUrl.searchParams.set('redirect', pathname);
-          loginUrl.searchParams.set('error', 'session_expired');
-          return NextResponse.redirect(loginUrl);
-        }
-      } catch {
-        // Refresh error - allow through, API calls will handle it
-        console.warn('[Middleware] Token refresh failed, allowing through');
+      // If only access token expired but refresh token valid, allow through
+      // The page/API will handle token refresh via client-side or API call
+      if (isAccessTokenExpired(session)) {
+        console.log('[Middleware] Access token expired, allowing through for refresh');
+        const response = NextResponse.next();
+        // Set header to signal frontend that token needs refresh
+        response.headers.set('x-token-refresh-needed', 'true');
+        return response;
       }
     }
 

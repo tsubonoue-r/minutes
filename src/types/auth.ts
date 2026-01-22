@@ -43,8 +43,10 @@ export interface SessionData {
   accessToken?: string;
   /** Refresh token for token renewal */
   refreshToken?: string;
-  /** Token expiration timestamp (Unix ms) */
+  /** Access token expiration timestamp (Unix ms) */
   tokenExpiresAt?: number;
+  /** Refresh token expiration timestamp (Unix ms) */
+  refreshTokenExpiresAt?: number;
   /** CSRF state for OAuth flow */
   oauthState?: string;
 }
