@@ -70,8 +70,17 @@ async function getSession(request: NextRequest): Promise<SessionData | null> {
 
 /**
  * Check if user is authenticated
+ * DEV_SKIP_AUTH=true で認証をスキップ可能
  */
 function isAuthenticated(session: SessionData | null): boolean {
+  // 開発用: 認証スキップ（本番環境では無効）
+  const devSkipAuth = process.env.DEV_SKIP_AUTH;
+
+  if (devSkipAuth === 'true' && process.env.NODE_ENV !== 'production') {
+    console.log('[Middleware] DEV_SKIP_AUTH=true: Authentication bypassed');
+    return true;
+  }
+
   if (session === null) {
     return false;
   }
@@ -125,7 +134,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if token is expired
-    if (session !== null && isTokenExpired(session)) {
+    // DEV_SKIP_AUTH が有効な場合はトークン期限切れチェックをスキップ（本番環境では無効）
+    const devSkipAuth = process.env.DEV_SKIP_AUTH === 'true' && process.env.NODE_ENV !== 'production';
+    if (!devSkipAuth && session !== null && isTokenExpired(session)) {
       // Token expired - try refresh or redirect to login
       const refreshUrl = new URL('/api/auth/lark/refresh', request.url);
 
