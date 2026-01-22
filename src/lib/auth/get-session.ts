@@ -74,11 +74,29 @@ export async function getSession(): Promise<SessionData | null> {
 }
 
 /**
+ * 開発用ダミーユーザー
+ */
+const DEV_MOCK_USER: LarkUser = {
+  openId: 'dev-user-001',
+  unionId: 'dev-union-001',
+  name: 'Dev User',
+  email: 'dev@example.com',
+  avatarUrl: 'https://example.com/avatar.png',
+  tenantKey: 'dev-tenant-001',
+};
+
+/**
  * Get the current user from server component
  *
  * @returns User object or null if not authenticated
  */
 export async function getCurrentUser(): Promise<LarkUser | null> {
+  // 開発用: 認証スキップ時はダミーユーザーを返す（本番環境では無効）
+  if (process.env.DEV_SKIP_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+    console.log('[getCurrentUser] DEV_SKIP_AUTH=true: Returning mock user');
+    return DEV_MOCK_USER;
+  }
+
   const session = await getSession();
 
   if (session === null || session.user === undefined) {
