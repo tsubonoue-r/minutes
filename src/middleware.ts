@@ -1,6 +1,11 @@
 /**
- * Next.js Middleware for authentication protection
+ * Next.js Middleware for authentication and security
  * @module middleware
+ *
+ * Provides:
+ * - Authentication protection for routes
+ * - Security headers (HSTS, X-Frame-Options, etc.)
+ * - Token expiration handling
  */
 
 import { NextResponse } from 'next/server';
@@ -27,6 +32,31 @@ const API_ROUTES = ['/api/'];
  * Static assets and system routes to skip
  */
 const SKIP_ROUTES = ['/_next/', '/favicon.ico', '/robots.txt', '/sitemap.xml'];
+
+/**
+ * Security headers applied to all responses
+ */
+const SECURITY_HEADERS: Record<string, string> = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+
+/**
+ * Apply security headers to a NextResponse
+ *
+ * @param response - The response to add headers to
+ * @returns The response with security headers applied
+ */
+function applySecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 /**
  * Check if a path matches any pattern in the list
@@ -144,12 +174,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   // Skip static assets and system routes
   if (matchesPattern(pathname, SKIP_ROUTES)) {
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next());
   }
 
-  // Skip API routes (handled by route handlers)
+  // API routes: apply security headers but skip auth (handled by route handlers)
   if (matchesPattern(pathname, API_ROUTES)) {
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next());
   }
 
   // Get session
@@ -161,7 +191,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (!authenticated) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      return applySecurityHeaders(NextResponse.redirect(loginUrl));
     }
 
     // Check if token is expired
@@ -174,7 +204,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
         loginUrl.searchParams.set('error', 'session_expired');
-        return NextResponse.redirect(loginUrl);
+        return applySecurityHeaders(NextResponse.redirect(loginUrl));
       }
 
       // If only access token expired but refresh token valid, allow through
@@ -184,25 +214,25 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         const response = NextResponse.next();
         // Set header to signal frontend that token needs refresh
         response.headers.set('x-token-refresh-needed', 'true');
-        return response;
+        return applySecurityHeaders(response);
       }
     }
 
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next());
   }
 
   // Auth routes - redirect authenticated users to dashboard
   if (matchesPattern(pathname, AUTH_ROUTES)) {
     if (authenticated) {
       const dashboardUrl = new URL('/dashboard', request.url);
-      return NextResponse.redirect(dashboardUrl);
+      return applySecurityHeaders(NextResponse.redirect(dashboardUrl));
     }
 
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next());
   }
 
-  // Public routes - allow through
-  return NextResponse.next();
+  // Public routes - allow through with security headers
+  return applySecurityHeaders(NextResponse.next());
 }
 
 /**

@@ -9,6 +9,12 @@ import { getSession } from '@/lib/auth/get-session';
 import { createLarkClient } from '@/lib/lark/client';
 import { createMeetingService, MeetingServiceError } from '@/services/meeting.service';
 import type { MeetingStatus } from '@/types/meeting';
+import {
+  getCache,
+  cacheKeyWithParams,
+  CACHE_TTL,
+  CACHE_KEYS,
+} from '@/lib/cache';
 
 /**
  * Query parameters validation schema
@@ -226,6 +232,24 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
+    // Check cache first
+    const cache = getCache();
+    const cacheKeyValue = cacheKeyWithParams(CACHE_KEYS.MEETINGS_LIST, {
+      page: String(params.page),
+      limit: String(params.limit),
+      search: params.search,
+      startDate: params.startDate?.toISOString(),
+      endDate: params.endDate?.toISOString(),
+      status: params.status,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    });
+
+    const cached = cache.get<MeetingsResponse>(cacheKeyValue);
+    if (cached.hit && cached.value !== undefined) {
+      return NextResponse.json(cached.value);
+    }
+
     // Create service and fetch meetings
     const client = createLarkClient();
     const meetingService = createMeetingService(client, session.accessToken);
@@ -280,6 +304,9 @@ export async function GET(request: Request): Promise<Response> {
         hasMore: result.pagination.hasMore,
       },
     };
+
+    // Store in cache with 5-minute TTL
+    cache.set(cacheKeyValue, response, { ttlMs: CACHE_TTL.MEDIUM });
 
     return NextResponse.json(response);
   } catch (error) {

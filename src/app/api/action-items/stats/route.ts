@@ -9,6 +9,7 @@ import {
   createActionItemService,
   ActionItemServiceError,
 } from '@/services/action-item.service';
+import { getCache, CACHE_TTL, CACHE_KEYS } from '@/lib/cache';
 
 // ============================================================================
 // Types
@@ -100,9 +101,21 @@ export async function GET(_request: Request): Promise<Response> {
       );
     }
 
+    // Check cache first
+    const cache = getCache();
+    const cached = cache.get<Awaited<ReturnType<ReturnType<typeof createActionItemService>['getStats']>>>(
+      CACHE_KEYS.ACTION_ITEMS_STATS
+    );
+    if (cached.hit && cached.value !== undefined) {
+      return createSuccessResponse(cached.value);
+    }
+
     // Get statistics
     const service = createActionItemService();
     const stats = await service.getStats();
+
+    // Store in cache with 5-minute TTL
+    cache.set(CACHE_KEYS.ACTION_ITEMS_STATS, stats, { ttlMs: CACHE_TTL.MEDIUM });
 
     return createSuccessResponse(stats);
   } catch (error) {

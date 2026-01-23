@@ -25,6 +25,7 @@ import {
   createRecipientFromOpenId,
 } from '@/services/notification.service';
 import { createLarkBaseServiceFromEnv } from '@/services/lark-base.service';
+import { getCache, CACHE_PATTERNS } from '@/lib/cache';
 
 // =============================================================================
 // Types
@@ -427,6 +428,16 @@ async function processEventAsync(payload: WebhookPayload): Promise<void> {
     const accessToken = await getAppAccessTokenForWebhook();
 
     const result = await service.processEvent(payload, accessToken);
+
+    // Invalidate meetings and dashboard caches after a meeting ends
+    const cache = getCache();
+    const meetingsInvalidated = cache.invalidateByPattern(CACHE_PATTERNS.MEETINGS);
+    const dashboardInvalidated = cache.invalidateByPattern(CACHE_PATTERNS.DASHBOARD);
+
+    console.log(`${LOG_PREFIX} Cache invalidated:`, {
+      meetingsEntries: meetingsInvalidated,
+      dashboardEntries: dashboardInvalidated,
+    });
 
     console.log(`${LOG_PREFIX} Event processing completed:`, {
       eventId: result.eventId,

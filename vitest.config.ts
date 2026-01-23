@@ -15,6 +15,10 @@ export default defineConfig({
         '**/*.d.ts',
       ],
     },
+    /** Setup files for integration tests (MSW server lifecycle) */
+    setupFiles: ['./tests/integration/setup.ts'],
+    /** Isolate test files to prevent module cache leaks between test suites */
+    isolate: true,
   },
   resolve: {
     alias: {

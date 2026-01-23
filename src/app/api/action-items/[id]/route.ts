@@ -16,6 +16,7 @@ import {
   PrioritySchema,
   SpeakerSchema,
 } from '@/types/minutes';
+import { getCache, CACHE_PATTERNS } from '@/lib/cache';
 
 // ============================================================================
 // Types
@@ -301,6 +302,10 @@ export async function PATCH(
     const service = createActionItemService();
     const updatedItem = await service.updateActionItem(actionItemId, updates);
 
+    // Invalidate action-items stats cache after update
+    const cache = getCache();
+    cache.invalidateByPattern(CACHE_PATTERNS.ACTION_ITEMS);
+
     return createSuccessResponse(updatedItem);
   } catch (error) {
     console.error('[PATCH /api/action-items/[id]] Error:', error);
@@ -371,6 +376,10 @@ export async function DELETE(
     // Delete action item
     const service = createActionItemService();
     await service.deleteActionItem(actionItemId);
+
+    // Invalidate action-items stats cache after deletion
+    const cache = getCache();
+    cache.invalidateByPattern(CACHE_PATTERNS.ACTION_ITEMS);
 
     return createSuccessResponse({ message: 'Deleted successfully' });
   } catch (error) {

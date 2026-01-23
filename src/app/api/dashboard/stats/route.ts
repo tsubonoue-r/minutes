@@ -12,6 +12,12 @@ import {
 } from '@/services/dashboard.service';
 import { DashboardStatsQuerySchema } from '@/types/dashboard';
 import type { DashboardStats } from '@/types/dashboard';
+import {
+  getCache,
+  cacheKeyWithParams,
+  CACHE_TTL,
+  CACHE_KEYS,
+} from '@/lib/cache';
 
 // ============================================================================
 // Types
@@ -160,6 +166,19 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
+    // Check cache first
+    const cache = getCache();
+    const cacheKeyValue = cacheKeyWithParams(CACHE_KEYS.DASHBOARD_STATS, {
+      period: params.period,
+      startDate: params.startDate,
+      endDate: params.endDate,
+    });
+
+    const cached = cache.get<DashboardStats>(cacheKeyValue);
+    if (cached.hit && cached.value !== undefined) {
+      return createSuccessResponse(cached.value);
+    }
+
     // Get dashboard statistics
     const service = createDashboardService();
     const stats = await service.getStats(
@@ -167,6 +186,9 @@ export async function GET(request: Request): Promise<Response> {
       params.startDate,
       params.endDate
     );
+
+    // Store in cache with 10-minute TTL
+    cache.set(cacheKeyValue, stats, { ttlMs: CACHE_TTL.LONG });
 
     return createSuccessResponse(stats);
   } catch (error) {
