@@ -210,7 +210,7 @@ export async function PUT(
   const user = createApprovalUserContext(userContext.id, userContext.name);
 
   try {
-    const result = service.resolve(
+    const result = await service.resolve(
       {
         approvalRequestId: id,
         action,

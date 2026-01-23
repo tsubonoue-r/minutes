@@ -19,6 +19,12 @@ import {
   type WebhookService,
 } from '@/services/webhook.service';
 import type { WebhookPayload } from '@/types/webhook';
+import { createLarkClient, getAppAccessToken } from '@/lib/lark';
+import {
+  createNotificationService,
+  createRecipientFromOpenId,
+} from '@/services/notification.service';
+import { createLarkBaseServiceFromEnv } from '@/services/lark-base.service';
 
 // =============================================================================
 // Types
@@ -82,7 +88,7 @@ function getWebhookService(): WebhookService {
     });
 
     // Set up callbacks for logging
-    webhookService.onMinutesGenerated((context, result) => {
+    webhookService.onMinutesGenerated(async (context, result) => {
       console.log(
         `${LOG_PREFIX} Minutes generated for meeting ${context.meetingId}`,
         {
@@ -92,20 +98,147 @@ function getWebhookService(): WebhookService {
         }
       );
 
-      // TODO: Integrate with notification service to notify host
-      // TODO: Store generated minutes in database
-      return Promise.resolve();
+      const larkClient = createLarkClient();
+      let accessToken: string;
+
+      try {
+        accessToken = await getAppAccessToken(larkClient);
+      } catch (tokenError) {
+        console.error(
+          `${LOG_PREFIX} [NotifyHost] Failed to obtain access token`,
+          {
+            meetingId: context.meetingId,
+            error: tokenError instanceof Error ? tokenError.message : String(tokenError),
+          }
+        );
+        return;
+      }
+
+      // Notify host that minutes have been generated
+      try {
+        const notificationService = createNotificationService();
+        const hostRecipient = createRecipientFromOpenId(context.hostUserId);
+
+        await notificationService.sendMinutesNotification(accessToken, {
+          minutes: result.minutes,
+          documentUrl: '', // Document URL is not available at this stage
+          recipients: [hostRecipient],
+          language: 'ja',
+        });
+
+        console.log(
+          `${LOG_PREFIX} [NotifyHost] Notification sent to host ${context.hostUserId}`,
+          { meetingId: context.meetingId }
+        );
+      } catch (notifyError) {
+        console.error(
+          `${LOG_PREFIX} [NotifyHost] Failed to send notification`,
+          {
+            meetingId: context.meetingId,
+            hostUserId: context.hostUserId,
+            error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+          }
+        );
+        // Do not rethrow - notification failure should not block further processing
+      }
+
+      // Store generated minutes in Lark Base
+      try {
+        const larkBaseService = createLarkBaseServiceFromEnv(larkClient, accessToken);
+
+        const saveResult = await larkBaseService.saveMinutes(
+          result.minutes,
+          context.meetingId
+        );
+
+        console.log(
+          `${LOG_PREFIX} [SaveMinutes] Minutes saved to Lark Base`,
+          {
+            meetingId: context.meetingId,
+            recordId: saveResult.recordId,
+            version: saveResult.version,
+          }
+        );
+      } catch (saveError) {
+        console.error(
+          `${LOG_PREFIX} [SaveMinutes] Failed to save minutes to Lark Base`,
+          {
+            meetingId: context.meetingId,
+            error: saveError instanceof Error ? saveError.message : String(saveError),
+            stack: saveError instanceof Error ? saveError.stack : undefined,
+          }
+        );
+        // Do not rethrow - save failure should not block other operations
+      }
     });
 
-    webhookService.onProcessingFailed((context, error) => {
+    webhookService.onProcessingFailed(async (context, error) => {
+      // Structured error logging for observability and error tracking
       console.error(
-        `${LOG_PREFIX} Failed to process meeting ${context.meetingId}:`,
-        error.message
+        `${LOG_PREFIX} [ProcessingFailed] Meeting processing failed`,
+        {
+          severity: 'ERROR',
+          meetingId: context.meetingId,
+          hostUserId: context.hostUserId,
+          endTime: context.endTime,
+          topic: context.topic,
+          error: {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+          },
+          timestamp: new Date().toISOString(),
+        }
       );
 
-      // TODO: Integrate with error tracking (e.g., Sentry)
-      // TODO: Send failure notification to admin
-      return Promise.resolve();
+      // Attempt to send failure notification to host
+      try {
+        const larkClient = createLarkClient();
+        const accessToken = await getAppAccessToken(larkClient);
+        const notificationService = createNotificationService();
+        const hostRecipient = createRecipientFromOpenId(context.hostUserId);
+
+        // Send a simple text-based failure notice via draft card
+        // (using draft card as a "review needed" notification)
+        await notificationService.sendDraftMinutesNotification(accessToken, {
+          minutes: {
+            id: `failed_${context.meetingId}`,
+            meetingId: context.meetingId,
+            title: context.topic ?? 'Meeting',
+            date: new Date(context.endTime * 1000).toISOString().split('T')[0] ?? '',
+            duration: 0,
+            summary: '',
+            topics: [],
+            decisions: [],
+            actionItems: [],
+            attendees: [],
+            metadata: {
+              generatedAt: new Date().toISOString(),
+              model: '',
+              processingTimeMs: 0,
+              confidence: 0,
+            },
+          },
+          previewUrl: '',
+          approveUrl: '',
+          recipient: hostRecipient,
+          language: 'ja',
+        });
+
+        console.log(
+          `${LOG_PREFIX} [ProcessingFailed] Failure notification sent to host`,
+          { meetingId: context.meetingId, hostUserId: context.hostUserId }
+        );
+      } catch (notifyError) {
+        console.error(
+          `${LOG_PREFIX} [ProcessingFailed] Failed to send failure notification`,
+          {
+            meetingId: context.meetingId,
+            error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+          }
+        );
+        // Swallow error - failure notification is best-effort
+      }
     });
   }
 
@@ -290,9 +423,8 @@ async function processEventAsync(payload: WebhookPayload): Promise<void> {
   const service = getWebhookService();
 
   try {
-    // Get app access token for API calls
-    // In production, this should use proper token management
-    const accessToken = await getAppAccessToken();
+    // Get app access token for API calls using dynamic token management
+    const accessToken = await getAppAccessTokenForWebhook();
 
     const result = await service.processEvent(payload, accessToken);
 
@@ -311,29 +443,19 @@ async function processEventAsync(payload: WebhookPayload): Promise<void> {
 }
 
 /**
- * Get app access token for API calls
+ * Get a valid app access token for API calls.
  *
- * This is a placeholder - in production, implement proper token management
- * with caching and refresh logic.
+ * Uses the Lark OAuth module's getAppAccessToken which handles:
+ * 1. Checking the in-memory cache for a valid (non-expired) token
+ * 2. If expired, requesting a new token from Lark API using app credentials
+ * 3. Caching the new token with expiration tracking
  *
- * @returns App access token
- * @throws Error if token cannot be obtained
+ * @returns App access token string
+ * @throws Error if token cannot be obtained (missing credentials or API failure)
  */
-function getAppAccessToken(): Promise<string> {
-  // TODO: Implement proper app access token retrieval
-  // This should:
-  // 1. Check cache for valid token
-  // 2. If expired, request new token from Lark API
-  // 3. Cache the new token
-  //
-  // For now, return from environment (for testing)
-  const token = process.env.LARK_APP_ACCESS_TOKEN;
-
-  if (token === undefined || token === '') {
-    return Promise.reject(new Error('LARK_APP_ACCESS_TOKEN not configured'));
-  }
-
-  return Promise.resolve(token);
+async function getAppAccessTokenForWebhook(): Promise<string> {
+  const larkClient = createLarkClient();
+  return getAppAccessToken(larkClient);
 }
 
 // =============================================================================

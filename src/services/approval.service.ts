@@ -32,6 +32,13 @@ import {
   createRecipientFromOpenId,
   type NotificationRecipient,
 } from './notification.service';
+import {
+  createApprovalRequestCard,
+  createApprovalResultCard,
+  type ApprovalRequestCardInfo,
+  type ApprovalResultCardInfo,
+  type CardLanguage,
+} from '@/lib/lark/card-templates';
 
 // =============================================================================
 // Types
@@ -110,6 +117,7 @@ export class ApprovalError extends Error {
 class ApprovalStorage {
   private requests: Map<string, ApprovalRequest> = new Map();
   private history: Map<string, ApprovalHistoryEntry[]> = new Map();
+  private requesterOpenIds: Map<string, string> = new Map();
 
   /**
    * Save an approval request
@@ -138,6 +146,7 @@ class ApprovalStorage {
   delete(id: string): boolean {
     const deleted = this.requests.delete(id);
     this.history.delete(id);
+    this.requesterOpenIds.delete(id);
     return deleted;
   }
 
@@ -170,11 +179,26 @@ class ApprovalStorage {
   }
 
   /**
+   * Store the requester's Lark open_id for a request
+   */
+  setRequesterOpenId(requestId: string, openId: string): void {
+    this.requesterOpenIds.set(requestId, openId);
+  }
+
+  /**
+   * Get the requester's Lark open_id for a request
+   */
+  getRequesterOpenId(requestId: string): string | undefined {
+    return this.requesterOpenIds.get(requestId);
+  }
+
+  /**
    * Clear all data (for testing)
    */
   clear(): void {
     this.requests.clear();
     this.history.clear();
+    this.requesterOpenIds.clear();
   }
 }
 
@@ -236,6 +260,11 @@ export class ApprovalService {
     try {
       // Create the approval request
       const request = createApprovalRequest(input, user.id, user.name);
+
+      // Store requester's Lark open_id if available
+      if (user.larkOpenId !== undefined && user.larkOpenId !== '') {
+        storage.setRequesterOpenId(request.id, user.larkOpenId);
+      }
 
       // If sendNotification is true and we're auto-submitting, submit immediately
       if (input.sendNotification !== false) {
@@ -390,11 +419,11 @@ export class ApprovalService {
    * @param options - Additional options including comment
    * @returns Operation result
    */
-  approve(
+  async approve(
     approvalRequestId: string,
     user: ApprovalUserContext,
     options: ApprovalServiceOptions & { comment?: string } = {}
-  ): ApprovalOperationResult {
+  ): Promise<ApprovalOperationResult> {
     return this.resolve(
       {
         approvalRequestId,
@@ -415,11 +444,11 @@ export class ApprovalService {
    * @param options - Additional options including comment
    * @returns Operation result
    */
-  reject(
+  async reject(
     approvalRequestId: string,
     user: ApprovalUserContext,
     options: ApprovalServiceOptions & { comment?: string } = {}
-  ): ApprovalOperationResult {
+  ): Promise<ApprovalOperationResult> {
     return this.resolve(
       {
         approvalRequestId,
@@ -440,11 +469,11 @@ export class ApprovalService {
    * @param options - Service options
    * @returns Operation result
    */
-  resolve(
+  async resolve(
     input: ResolveApprovalRequestInput,
     user: ApprovalUserContext,
     options: ApprovalServiceOptions = {}
-  ): ApprovalOperationResult {
+  ): Promise<ApprovalOperationResult> {
     const request = storage.get(input.approvalRequestId);
 
     if (request === undefined) {
@@ -499,10 +528,10 @@ export class ApprovalService {
     );
     storage.addHistory(historyEntry);
 
-    // Send notification to requester
+    // Send notification to requester (non-blocking: failure is logged only)
     let notificationSent = false;
     if (input.sendNotification !== false && options.accessToken !== undefined) {
-      notificationSent = this.notifyRequester(
+      notificationSent = await this.notifyRequester(
         updatedRequest,
         input.action,
         user,
@@ -697,13 +726,19 @@ export class ApprovalService {
   // ==========================================================================
 
   /**
-   * Send notification to approvers
+   * Send approval request notification to approvers using custom card template
+   *
+   * @param request - The approval request
+   * @param requester - The user who created the request
+   * @param accessToken - Lark access token
+   * @param language - Notification language
+   * @returns Whether at least one notification was sent successfully
    */
   private async notifyApprovers(
     request: ApprovalRequest,
     requester: ApprovalUserContext,
     accessToken: string,
-    language: 'ja' | 'en'
+    language: CardLanguage
   ): Promise<boolean> {
     try {
       const notificationService = createNotificationService();
@@ -717,36 +752,41 @@ export class ApprovalService {
         return false;
       }
 
-      // Create minimal minutes object for notification
-      const minimalMinutes = {
-        id: request.minutesId,
-        meetingId: request.meetingId,
+      // Build approval request card info
+      const cardInfo: ApprovalRequestCardInfo = {
+        id: request.id,
         title: request.title,
         date: request.createdAt.split('T')[0] ?? '1970-01-01',
-        duration: 0,
-        summary: '',
-        topics: [] as never[],
-        decisions: [] as never[],
-        actionItems: [] as never[],
-        attendees: [] as never[],
-        metadata: {
-          generatedAt: request.createdAt,
-          model: 'unknown',
-          processingTimeMs: 0,
-          confidence: 0,
-        },
+        requesterName: requester.name,
+        comment: request.requestComment,
+        minutesUrl: `/meetings/${request.meetingId}/minutes`,
+        approvalUrl: `/api/approvals/${request.id}`,
       };
 
-      // Send draft notification (which prompts for review)
-      const result = await notificationService.sendDraftMinutesNotification(accessToken, {
-        minutes: minimalMinutes,
-        previewUrl: `/meetings/${request.meetingId}/minutes`,
-        approveUrl: `/api/approvals/${request.id}`,
-        recipient: recipients[0]!, // Send to first approver
-        language,
-      });
+      const card = createApprovalRequestCard(cardInfo, language);
 
-      return result.success;
+      // Send card to all approvers
+      let anySent = false;
+      for (const recipient of recipients) {
+        try {
+          const result = await notificationService.sendCardMessage(
+            accessToken,
+            card,
+            recipient
+          );
+          if (result.success) {
+            anySent = true;
+          }
+        } catch (recipientError) {
+          // Log but don't fail the entire notification flow
+          console.error(
+            `Failed to notify approver ${recipient.name ?? recipient.id}:`,
+            recipientError
+          );
+        }
+      }
+
+      return anySent;
     } catch (error) {
       console.error('Failed to notify approvers:', error);
       return false;
@@ -754,19 +794,91 @@ export class ApprovalService {
   }
 
   /**
-   * Send notification to requester about approval result
+   * Send approval result notification to the requester using custom card template
+   *
+   * @param request - The resolved approval request
+   * @param action - The approval action taken (approve/reject)
+   * @param approver - The user who resolved the request
+   * @param accessToken - Lark access token
+   * @param language - Notification language
+   * @returns Whether the notification was sent successfully
    */
-  private notifyRequester(
+  private async notifyRequester(
     request: ApprovalRequest,
     action: ApprovalAction,
-    _approver: ApprovalUserContext,
-    _accessToken: string,
-    _language: 'ja' | 'en'
-  ): boolean {
-    // TODO: Implement requester notification using a custom card template
-    // For now, we'll skip this as it requires additional card templates
-    console.log(`Notification would be sent to requester ${request.requesterId} for ${action}`);
-    return false;
+    approver: ApprovalUserContext,
+    accessToken: string,
+    language: CardLanguage
+  ): Promise<boolean> {
+    try {
+      // Find the requester's Lark open_id from stored data
+      // The requester info is not stored with larkOpenId in the request,
+      // so we look for it in the approvers list in case of self-approval,
+      // or use a lookup approach
+      const requesterOpenId = this.findRequesterOpenId(request);
+
+      if (requesterOpenId === undefined) {
+        console.warn(
+          `Cannot notify requester ${request.requesterName}: no Lark open_id available`
+        );
+        return false;
+      }
+
+      const notificationService = createNotificationService();
+      const recipient = createRecipientFromOpenId(requesterOpenId, request.requesterName);
+
+      // Build approval result card info
+      const cardInfo: ApprovalResultCardInfo = {
+        id: request.id,
+        title: request.title,
+        date: request.createdAt.split('T')[0] ?? '1970-01-01',
+        approverName: approver.name,
+        result: action === APPROVAL_ACTION.APPROVE ? 'approved' : 'rejected',
+        comment: request.resolutionComment,
+        minutesUrl: `/meetings/${request.meetingId}/minutes`,
+      };
+
+      const card = createApprovalResultCard(cardInfo, language);
+
+      const result = await notificationService.sendCardMessage(
+        accessToken,
+        card,
+        recipient
+      );
+
+      return result.success;
+    } catch (error) {
+      console.error('Failed to notify requester:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Find the requester's Lark open_id from the approval request context
+   *
+   * Checks the stored requester open_id first, then falls back to
+   * checking if the requester is also listed as an approver.
+   *
+   * @param request - The approval request
+   * @returns The requester's Lark open_id or undefined
+   */
+  private findRequesterOpenId(request: ApprovalRequest): string | undefined {
+    // Check stored requester open_id
+    const storedOpenId = storage.getRequesterOpenId(request.id);
+    if (storedOpenId !== undefined) {
+      return storedOpenId;
+    }
+
+    // Check if the requester is also an approver (has larkOpenId stored)
+    const requesterAsApprover = request.approvers.find(
+      (a) => a.id === request.requesterId
+    );
+    if (requesterAsApprover?.larkOpenId !== undefined) {
+      return requesterAsApprover.larkOpenId;
+    }
+
+    // In a real implementation, this would query a user service.
+    return undefined;
   }
 }
 

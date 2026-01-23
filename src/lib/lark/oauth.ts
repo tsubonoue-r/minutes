@@ -117,10 +117,14 @@ export async function exchangeCodeForToken(
       }
     );
 
+    // Debug: Log the actual response structure
+    console.log('[OAuth] User access token response:', JSON.stringify(response, null, 2));
+
     // Validate response structure
     const parseResult = userAccessTokenResponseSchema.safeParse(response);
 
     if (!parseResult.success) {
+      console.error('[OAuth] Parse error paths:', parseResult.error.errors.map(e => e.path));
       return authFailure(
         'token_exchange_failed',
         'Invalid response structure from Lark API',
@@ -254,24 +258,30 @@ export async function getAppAccessToken(client: LarkClient): Promise<string> {
 
   const config = client.getConfig();
 
-  const response = await client.post<{
-    app_access_token: string;
-    expire: number;
-  }>(LarkApiEndpoints.APP_ACCESS_TOKEN, {
+  // Note: app_access_token API returns token at root level, not nested under "data"
+  const response = await client.post<never>(LarkApiEndpoints.APP_ACCESS_TOKEN, {
     body: {
       app_id: config.appId,
       app_secret: config.appSecret,
     },
   });
 
-  if (response.data === undefined) {
+  // Cast to the actual response structure (app_access_token is at root level)
+  const tokenResponse = response as unknown as {
+    app_access_token: string;
+    expire: number;
+    code: number;
+    msg: string;
+  };
+
+  if (!tokenResponse.app_access_token) {
     throw new Error('Failed to get app access token');
   }
 
   // Cache the token
   appAccessTokenCache = {
-    token: response.data.app_access_token,
-    expiresAt: now + response.data.expire * 1000,
+    token: tokenResponse.app_access_token,
+    expiresAt: now + tokenResponse.expire * 1000,
   };
 
   return appAccessTokenCache.token;

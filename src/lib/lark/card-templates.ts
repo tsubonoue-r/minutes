@@ -73,6 +73,46 @@ export interface DraftMinutesCardInfo {
 }
 
 /**
+ * Approval request notification card information
+ */
+export interface ApprovalRequestCardInfo {
+  /** Approval request ID */
+  readonly id: string;
+  /** Minutes title */
+  readonly title: string;
+  /** Meeting date (YYYY-MM-DD) */
+  readonly date: string;
+  /** Requester name */
+  readonly requesterName: string;
+  /** Optional requester comment */
+  readonly comment?: string | undefined;
+  /** URL to view the minutes */
+  readonly minutesUrl: string;
+  /** URL to approve/reject */
+  readonly approvalUrl: string;
+}
+
+/**
+ * Approval result notification card information
+ */
+export interface ApprovalResultCardInfo {
+  /** Approval request ID */
+  readonly id: string;
+  /** Minutes title */
+  readonly title: string;
+  /** Meeting date (YYYY-MM-DD) */
+  readonly date: string;
+  /** Approver name */
+  readonly approverName: string;
+  /** Approval result: approved or rejected */
+  readonly result: 'approved' | 'rejected';
+  /** Optional approver comment */
+  readonly comment?: string | undefined;
+  /** URL to view the minutes */
+  readonly minutesUrl: string;
+}
+
+/**
  * Language options for card content
  */
 export type CardLanguage = 'ja' | 'en';
@@ -176,7 +216,7 @@ function getPriorityText(
  * @returns Card template color
  */
 function getHeaderColor(
-  type: 'minutes' | 'draft' | 'action-item'
+  type: 'minutes' | 'draft' | 'action-item' | 'approval-request' | 'approval-approved' | 'approval-rejected'
 ): CardTemplateColor {
   switch (type) {
     case 'minutes':
@@ -185,6 +225,12 @@ function getHeaderColor(
       return 'yellow';
     case 'action-item':
       return 'green';
+    case 'approval-request':
+      return 'orange';
+    case 'approval-approved':
+      return 'green';
+    case 'approval-rejected':
+      return 'red';
     default:
       return 'blue';
   }
@@ -259,6 +305,60 @@ const labels = {
       priority: 'Priority',
       noDueDate: 'Not set',
       viewMinutesButton: 'View Minutes',
+    },
+  },
+  approvalRequest: {
+    ja: {
+      title: '承認リクエスト',
+      description: '以下の議事録の承認が依頼されています。内容を確認し、承認または差し戻しを行ってください。',
+      meetingTitle: '議事録',
+      date: '会議日時',
+      requester: '依頼者',
+      comment: 'コメント',
+      viewButton: '議事録を確認',
+      approveButton: '承認画面を開く',
+    },
+    en: {
+      title: 'Approval Request',
+      description: 'You have been requested to approve the following minutes. Please review and approve or reject.',
+      meetingTitle: 'Minutes',
+      date: 'Meeting Date',
+      requester: 'Requester',
+      comment: 'Comment',
+      viewButton: 'View Minutes',
+      approveButton: 'Open Approval',
+    },
+  },
+  approvalResult: {
+    ja: {
+      titleApproved: '承認完了',
+      titleRejected: '差し戻し',
+      descriptionApproved: 'あなたの議事録が承認されました。',
+      descriptionRejected: 'あなたの議事録が差し戻されました。以下のコメントを確認してください。',
+      meetingTitle: '議事録',
+      date: '会議日時',
+      approver: '承認者',
+      result: '結果',
+      resultApproved: '承認',
+      resultRejected: '差し戻し',
+      comment: 'コメント',
+      noComment: 'コメントなし',
+      viewButton: '議事録を確認',
+    },
+    en: {
+      titleApproved: 'Approved',
+      titleRejected: 'Rejected',
+      descriptionApproved: 'Your minutes have been approved.',
+      descriptionRejected: 'Your minutes have been rejected. Please review the comment below.',
+      meetingTitle: 'Minutes',
+      date: 'Meeting Date',
+      approver: 'Approver',
+      result: 'Result',
+      resultApproved: 'Approved',
+      resultRejected: 'Rejected',
+      comment: 'Comment',
+      noComment: 'No comment',
+      viewButton: 'View Minutes',
     },
   },
 };
@@ -547,6 +647,229 @@ export function createActionItemAssignedCard(
   };
 }
 
+/**
+ * Generate a card for approval request notification
+ *
+ * Sent to approvers when a new approval request is created.
+ *
+ * @param info - Approval request card information
+ * @param language - Output language
+ * @returns Interactive card for approval request
+ *
+ * @example
+ * ```typescript
+ * const card = createApprovalRequestCard({
+ *   id: 'apr_123',
+ *   title: 'Weekly Sync Minutes',
+ *   date: '2024-01-15',
+ *   requesterName: 'Suzuki',
+ *   comment: 'Please review',
+ *   minutesUrl: '/meetings/meeting_456/minutes',
+ *   approvalUrl: '/api/approvals/apr_123',
+ * }, 'ja');
+ * ```
+ */
+export function createApprovalRequestCard(
+  info: ApprovalRequestCardInfo,
+  language: CardLanguage = 'ja'
+): InteractiveCard {
+  const l = labels.approvalRequest[language];
+
+  const header: CardHeader = {
+    title: {
+      tag: 'plain_text',
+      content: l.title,
+    },
+    template: getHeaderColor('approval-request'),
+  };
+
+  const elements: CardElement[] = [
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: l.description,
+      },
+    },
+    {
+      tag: 'hr',
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.meetingTitle}**: ${info.title}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.date}**: ${formatDate(info.date, language)}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.requester}**: ${info.requesterName}`,
+      },
+    },
+  ];
+
+  // Add comment if provided
+  if (info.comment !== undefined && info.comment.trim() !== '') {
+    elements.push({
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.comment}**: ${info.comment}`,
+      },
+    });
+  }
+
+  elements.push({
+    tag: 'hr',
+  });
+
+  elements.push({
+    tag: 'action',
+    actions: [
+      {
+        tag: 'button',
+        text: {
+          tag: 'plain_text',
+          content: l.viewButton,
+        },
+        url: info.minutesUrl,
+        type: 'default',
+      },
+      {
+        tag: 'button',
+        text: {
+          tag: 'plain_text',
+          content: l.approveButton,
+        },
+        url: info.approvalUrl,
+        type: 'primary',
+      },
+    ],
+  });
+
+  return {
+    header,
+    elements,
+  };
+}
+
+/**
+ * Generate a card for approval result notification
+ *
+ * Sent to the requester when their approval request is resolved.
+ *
+ * @param info - Approval result card information
+ * @param language - Output language
+ * @returns Interactive card for approval result
+ *
+ * @example
+ * ```typescript
+ * const card = createApprovalResultCard({
+ *   id: 'apr_123',
+ *   title: 'Weekly Sync Minutes',
+ *   date: '2024-01-15',
+ *   approverName: 'Tanaka',
+ *   result: 'approved',
+ *   comment: 'Looks good!',
+ *   minutesUrl: '/meetings/meeting_456/minutes',
+ * }, 'ja');
+ * ```
+ */
+export function createApprovalResultCard(
+  info: ApprovalResultCardInfo,
+  language: CardLanguage = 'ja'
+): InteractiveCard {
+  const l = labels.approvalResult[language];
+  const isApproved = info.result === 'approved';
+
+  const header: CardHeader = {
+    title: {
+      tag: 'plain_text',
+      content: isApproved ? l.titleApproved : l.titleRejected,
+    },
+    template: getHeaderColor(isApproved ? 'approval-approved' : 'approval-rejected'),
+  };
+
+  const elements: CardElement[] = [
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: isApproved ? l.descriptionApproved : l.descriptionRejected,
+      },
+    },
+    {
+      tag: 'hr',
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.meetingTitle}**: ${info.title}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.date}**: ${formatDate(info.date, language)}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.approver}**: ${info.approverName}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.result}**: ${isApproved ? l.resultApproved : l.resultRejected}`,
+      },
+    },
+    {
+      tag: 'div',
+      text: {
+        tag: 'lark_md',
+        content: `**${l.comment}**: ${info.comment !== undefined && info.comment.trim() !== '' ? info.comment : l.noComment}`,
+      },
+    },
+    {
+      tag: 'hr',
+    },
+    {
+      tag: 'action',
+      actions: [
+        {
+          tag: 'button',
+          text: {
+            tag: 'plain_text',
+            content: l.viewButton,
+          },
+          url: info.minutesUrl,
+          type: 'default',
+        },
+      ],
+    },
+  ];
+
+  return {
+    header,
+    elements,
+  };
+}
+
 // =============================================================================
 // Card Validation
 // =============================================================================
@@ -639,6 +962,66 @@ export function validateDraftMinutesCardInfo(
   }
   if (info.approveUrl.trim() === '') {
     throw new Error('Approve URL is required');
+  }
+  return true;
+}
+
+/**
+ * Validate approval request card info
+ *
+ * @param info - Approval request card info to validate
+ * @returns true if valid, throws Error if invalid
+ */
+export function validateApprovalRequestCardInfo(
+  info: ApprovalRequestCardInfo
+): boolean {
+  if (info.id.trim() === '') {
+    throw new Error('Approval request ID is required');
+  }
+  if (info.title.trim() === '') {
+    throw new Error('Minutes title is required');
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(info.date)) {
+    throw new Error('Date must be in YYYY-MM-DD format');
+  }
+  if (info.requesterName.trim() === '') {
+    throw new Error('Requester name is required');
+  }
+  if (info.minutesUrl.trim() === '') {
+    throw new Error('Minutes URL is required');
+  }
+  if (info.approvalUrl.trim() === '') {
+    throw new Error('Approval URL is required');
+  }
+  return true;
+}
+
+/**
+ * Validate approval result card info
+ *
+ * @param info - Approval result card info to validate
+ * @returns true if valid, throws Error if invalid
+ */
+export function validateApprovalResultCardInfo(
+  info: ApprovalResultCardInfo
+): boolean {
+  if (info.id.trim() === '') {
+    throw new Error('Approval request ID is required');
+  }
+  if (info.title.trim() === '') {
+    throw new Error('Minutes title is required');
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(info.date)) {
+    throw new Error('Date must be in YYYY-MM-DD format');
+  }
+  if (info.approverName.trim() === '') {
+    throw new Error('Approver name is required');
+  }
+  if (!['approved', 'rejected'].includes(info.result)) {
+    throw new Error('Result must be approved or rejected');
+  }
+  if (info.minutesUrl.trim() === '') {
+    throw new Error('Minutes URL is required');
   }
   return true;
 }

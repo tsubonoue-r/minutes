@@ -394,6 +394,32 @@ export class NotificationService {
   }
 
   /**
+   * Send a card message to a single recipient (public API)
+   *
+   * Exposes the card sending capability for use by other services
+   * that build their own custom card templates.
+   *
+   * @param accessToken - Access token
+   * @param card - Interactive card to send
+   * @param recipient - Recipient information
+   * @returns Notification result
+   *
+   * @example
+   * ```typescript
+   * const service = createNotificationService();
+   * const card = createApprovalRequestCard(cardInfo, 'ja');
+   * const result = await service.sendCardMessage(accessToken, card, recipient);
+   * ```
+   */
+  async sendCardMessage(
+    accessToken: string,
+    card: InteractiveCard,
+    recipient: NotificationRecipient
+  ): Promise<NotificationResult> {
+    return this.sendCardToRecipient(accessToken, card, recipient);
+  }
+
+  /**
    * Send a card message to a single recipient
    *
    * @param accessToken - Access token

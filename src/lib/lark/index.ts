@@ -89,12 +89,18 @@ export {
   createMinutesCompletedCard,
   createMinutesDraftCard,
   createActionItemAssignedCard,
+  createApprovalRequestCard,
+  createApprovalResultCard,
   validateMinutesCardInfo,
   validateActionItemCardInfo,
   validateDraftMinutesCardInfo,
+  validateApprovalRequestCardInfo,
+  validateApprovalResultCardInfo,
   type MinutesCardInfo,
   type ActionItemCardInfo,
   type DraftMinutesCardInfo,
+  type ApprovalRequestCardInfo,
+  type ApprovalResultCardInfo,
   type CardLanguage,
 } from './card-templates';
 

@@ -151,7 +151,7 @@ describe('ApprovalService', () => {
 
       // Approve as the approver
       const approverUser = createApprovalUserContext(approver.id, approver.name);
-      const approveResult = service.approve(
+      const approveResult = await service.approve(
         createResult.request!.id,
         approverUser,
         { comment: 'Looks good!', sendNotification: false }
@@ -175,7 +175,7 @@ describe('ApprovalService', () => {
 
       // Try to approve as a non-approver
       const nonApprover = createApprovalUserContext('other_user', 'Other User');
-      const approveResult = service.approve(
+      const approveResult = await service.approve(
         createResult.request!.id,
         nonApprover,
         { sendNotification: false }
@@ -196,12 +196,12 @@ describe('ApprovalService', () => {
 
       // Approve once
       const approverUser = createApprovalUserContext(approver.id, approver.name);
-      service.approve(createResult.request!.id, approverUser, {
+      await service.approve(createResult.request!.id, approverUser, {
         sendNotification: false,
       });
 
       // Try to approve again
-      const secondApproveResult = service.approve(
+      const secondApproveResult = await service.approve(
         createResult.request!.id,
         approverUser,
         { sendNotification: false }
@@ -223,7 +223,7 @@ describe('ApprovalService', () => {
       });
 
       const approverUser = createApprovalUserContext(approver.id, approver.name);
-      const rejectResult = service.reject(
+      const rejectResult = await service.reject(
         createResult.request!.id,
         approverUser,
         { comment: 'Needs more detail', sendNotification: false }
@@ -245,7 +245,7 @@ describe('ApprovalService', () => {
       });
 
       const nonApprover = createApprovalUserContext('other_user', 'Other User');
-      const rejectResult = service.reject(
+      const rejectResult = await service.reject(
         createResult.request!.id,
         nonApprover,
         { sendNotification: false }
@@ -369,7 +369,7 @@ describe('ApprovalService', () => {
         user,
         { sendNotification: false }
       );
-      service.approve(
+      await service.approve(
         approvedResult.request!.id,
         createApprovalUserContext(approver.id, approver.name),
         { sendNotification: false }
@@ -447,7 +447,7 @@ describe('ApprovalService', () => {
 
       // Approve the request
       const approverUser = createApprovalUserContext(approver.id, approver.name);
-      service.approve(createResult.request!.id, approverUser, {
+      await service.approve(createResult.request!.id, approverUser, {
         sendNotification: false,
       });
 
@@ -479,7 +479,7 @@ describe('ApprovalService', () => {
         user,
         { sendNotification: false }
       );
-      service.approve(
+      await service.approve(
         approved.request!.id,
         createApprovalUserContext(approver.id, approver.name),
         { sendNotification: false }
@@ -490,7 +490,7 @@ describe('ApprovalService', () => {
         user,
         { sendNotification: false }
       );
-      service.reject(
+      await service.reject(
         rejected.request!.id,
         createApprovalUserContext(approver.id, approver.name),
         { sendNotification: false }

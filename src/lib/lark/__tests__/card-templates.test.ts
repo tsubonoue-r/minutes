@@ -8,12 +8,18 @@ import {
   createMinutesCompletedCard,
   createMinutesDraftCard,
   createActionItemAssignedCard,
+  createApprovalRequestCard,
+  createApprovalResultCard,
   validateMinutesCardInfo,
   validateActionItemCardInfo,
   validateDraftMinutesCardInfo,
+  validateApprovalRequestCardInfo,
+  validateApprovalResultCardInfo,
   type MinutesCardInfo,
   type ActionItemCardInfo,
   type DraftMinutesCardInfo,
+  type ApprovalRequestCardInfo,
+  type ApprovalResultCardInfo,
 } from '../card-templates';
 
 describe('createMinutesCompletedCard', () => {
@@ -346,5 +352,419 @@ describe('validateDraftMinutesCardInfo', () => {
     expect(() =>
       validateDraftMinutesCardInfo({ ...validInfo, approveUrl: '  ' })
     ).toThrow('Approve URL is required');
+  });
+});
+
+// =============================================================================
+// Approval Request Card Tests
+// =============================================================================
+
+describe('createApprovalRequestCard', () => {
+  const validApprovalRequestInfo: ApprovalRequestCardInfo = {
+    id: 'apr_123',
+    title: 'Weekly Sync Minutes',
+    date: '2024-01-15',
+    requesterName: 'Suzuki',
+    comment: 'Please review and approve',
+    minutesUrl: '/meetings/meeting_456/minutes',
+    approvalUrl: '/api/approvals/apr_123',
+  };
+
+  it('should create approval request card with Japanese labels', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo, 'ja');
+
+    expect(card.header).toBeDefined();
+    expect(card.header?.title.content).toBe('承認リクエスト');
+    expect(card.header?.template).toBe('orange');
+    expect(card.elements.length).toBeGreaterThan(0);
+  });
+
+  it('should create approval request card with English labels', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo, 'en');
+
+    expect(card.header?.title.content).toBe('Approval Request');
+    expect(card.header?.template).toBe('orange');
+  });
+
+  it('should include description, title, date, and requester information', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('Weekly Sync Minutes');
+    expect(elementContents).toContain('Suzuki');
+    expect(elementContents).toContain('承認が依頼されています');
+  });
+
+  it('should include comment when provided', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('Please review and approve');
+  });
+
+  it('should not include comment when not provided', () => {
+    const infoWithoutComment = {
+      ...validApprovalRequestInfo,
+      comment: undefined,
+    };
+    const card = createApprovalRequestCard(infoWithoutComment, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const commentElements = divElements.filter(
+      (e) =>
+        e.tag === 'div' &&
+        'text' in e &&
+        e.text.content.includes('Please review and approve')
+    );
+    expect(commentElements.length).toBe(0);
+  });
+
+  it('should include view and approve buttons', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo, 'ja');
+
+    const actionElement = card.elements.find((e) => e.tag === 'action');
+    expect(actionElement).toBeDefined();
+
+    if (actionElement?.tag === 'action') {
+      expect(actionElement.actions.length).toBe(2);
+
+      const viewButton = actionElement.actions.find(
+        (a) => a.url === validApprovalRequestInfo.minutesUrl
+      );
+      const approveButton = actionElement.actions.find(
+        (a) => a.url === validApprovalRequestInfo.approvalUrl
+      );
+
+      expect(viewButton).toBeDefined();
+      expect(viewButton?.type).toBe('default');
+      expect(approveButton).toBeDefined();
+      expect(approveButton?.type).toBe('primary');
+    }
+  });
+
+  it('should default to Japanese language', () => {
+    const card = createApprovalRequestCard(validApprovalRequestInfo);
+
+    expect(card.header?.title.content).toBe('承認リクエスト');
+  });
+});
+
+// =============================================================================
+// Approval Result Card Tests
+// =============================================================================
+
+describe('createApprovalResultCard', () => {
+  const validApprovedInfo: ApprovalResultCardInfo = {
+    id: 'apr_123',
+    title: 'Weekly Sync Minutes',
+    date: '2024-01-15',
+    approverName: 'Tanaka',
+    result: 'approved',
+    comment: 'Looks good!',
+    minutesUrl: '/meetings/meeting_456/minutes',
+  };
+
+  const validRejectedInfo: ApprovalResultCardInfo = {
+    ...validApprovedInfo,
+    result: 'rejected',
+    comment: 'Missing action items',
+  };
+
+  it('should create approved result card with green header', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'ja');
+
+    expect(card.header?.title.content).toBe('承認完了');
+    expect(card.header?.template).toBe('green');
+  });
+
+  it('should create rejected result card with red header', () => {
+    const card = createApprovalResultCard(validRejectedInfo, 'ja');
+
+    expect(card.header?.title.content).toBe('差し戻し');
+    expect(card.header?.template).toBe('red');
+  });
+
+  it('should create approved result card with English labels', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'en');
+
+    expect(card.header?.title.content).toBe('Approved');
+    expect(card.header?.template).toBe('green');
+  });
+
+  it('should create rejected result card with English labels', () => {
+    const card = createApprovalResultCard(validRejectedInfo, 'en');
+
+    expect(card.header?.title.content).toBe('Rejected');
+    expect(card.header?.template).toBe('red');
+  });
+
+  it('should include approval description for approved result', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('承認されました');
+  });
+
+  it('should include rejection description for rejected result', () => {
+    const card = createApprovalResultCard(validRejectedInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('差し戻されました');
+  });
+
+  it('should include approver name and result status', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('Tanaka');
+    expect(elementContents).toContain('承認');
+  });
+
+  it('should include comment when provided', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('Looks good!');
+  });
+
+  it('should show no comment message when comment is not provided', () => {
+    const infoWithoutComment: ApprovalResultCardInfo = {
+      ...validApprovedInfo,
+      comment: undefined,
+    };
+    const card = createApprovalResultCard(infoWithoutComment, 'ja');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('コメントなし');
+  });
+
+  it('should show no comment message for English when comment is empty', () => {
+    const infoWithEmptyComment: ApprovalResultCardInfo = {
+      ...validApprovedInfo,
+      comment: '  ',
+    };
+    const card = createApprovalResultCard(infoWithEmptyComment, 'en');
+
+    const divElements = card.elements.filter((e) => e.tag === 'div');
+    const elementContents = divElements
+      .map((e) => {
+        if (e.tag === 'div' && 'text' in e) {
+          return e.text.content;
+        }
+        return '';
+      })
+      .join(' ');
+
+    expect(elementContents).toContain('No comment');
+  });
+
+  it('should include view minutes button', () => {
+    const card = createApprovalResultCard(validApprovedInfo, 'ja');
+
+    const actionElement = card.elements.find((e) => e.tag === 'action');
+    expect(actionElement).toBeDefined();
+
+    if (actionElement?.tag === 'action') {
+      expect(actionElement.actions.length).toBe(1);
+      const viewButton = actionElement.actions[0];
+      expect(viewButton?.url).toBe(validApprovedInfo.minutesUrl);
+      expect(viewButton?.type).toBe('default');
+    }
+  });
+
+  it('should default to Japanese language', () => {
+    const card = createApprovalResultCard(validApprovedInfo);
+
+    expect(card.header?.title.content).toBe('承認完了');
+  });
+});
+
+// =============================================================================
+// Approval Card Validation Tests
+// =============================================================================
+
+describe('validateApprovalRequestCardInfo', () => {
+  const validInfo: ApprovalRequestCardInfo = {
+    id: 'apr_123',
+    title: 'Weekly Sync Minutes',
+    date: '2024-01-15',
+    requesterName: 'Suzuki',
+    minutesUrl: '/meetings/meeting_456/minutes',
+    approvalUrl: '/api/approvals/apr_123',
+  };
+
+  it('should pass for valid info', () => {
+    expect(validateApprovalRequestCardInfo(validInfo)).toBe(true);
+  });
+
+  it('should pass for valid info with optional comment', () => {
+    expect(
+      validateApprovalRequestCardInfo({ ...validInfo, comment: 'Please review' })
+    ).toBe(true);
+  });
+
+  it('should throw for empty id', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, id: '' })
+    ).toThrow('Approval request ID is required');
+  });
+
+  it('should throw for empty title', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, title: '  ' })
+    ).toThrow('Minutes title is required');
+  });
+
+  it('should throw for invalid date format', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, date: '2024/01/15' })
+    ).toThrow('Date must be in YYYY-MM-DD format');
+  });
+
+  it('should throw for empty requester name', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, requesterName: '' })
+    ).toThrow('Requester name is required');
+  });
+
+  it('should throw for empty minutes URL', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, minutesUrl: '' })
+    ).toThrow('Minutes URL is required');
+  });
+
+  it('should throw for empty approval URL', () => {
+    expect(() =>
+      validateApprovalRequestCardInfo({ ...validInfo, approvalUrl: '  ' })
+    ).toThrow('Approval URL is required');
+  });
+});
+
+describe('validateApprovalResultCardInfo', () => {
+  const validInfo: ApprovalResultCardInfo = {
+    id: 'apr_123',
+    title: 'Weekly Sync Minutes',
+    date: '2024-01-15',
+    approverName: 'Tanaka',
+    result: 'approved',
+    minutesUrl: '/meetings/meeting_456/minutes',
+  };
+
+  it('should pass for valid approved info', () => {
+    expect(validateApprovalResultCardInfo(validInfo)).toBe(true);
+  });
+
+  it('should pass for valid rejected info', () => {
+    expect(
+      validateApprovalResultCardInfo({ ...validInfo, result: 'rejected' })
+    ).toBe(true);
+  });
+
+  it('should pass for valid info with comment', () => {
+    expect(
+      validateApprovalResultCardInfo({ ...validInfo, comment: 'Looks good' })
+    ).toBe(true);
+  });
+
+  it('should throw for empty id', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({ ...validInfo, id: '' })
+    ).toThrow('Approval request ID is required');
+  });
+
+  it('should throw for empty title', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({ ...validInfo, title: '  ' })
+    ).toThrow('Minutes title is required');
+  });
+
+  it('should throw for invalid date format', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({ ...validInfo, date: 'Jan 15, 2024' })
+    ).toThrow('Date must be in YYYY-MM-DD format');
+  });
+
+  it('should throw for empty approver name', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({ ...validInfo, approverName: '' })
+    ).toThrow('Approver name is required');
+  });
+
+  it('should throw for invalid result value', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({
+        ...validInfo,
+        result: 'pending' as 'approved',
+      })
+    ).toThrow('Result must be approved or rejected');
+  });
+
+  it('should throw for empty minutes URL', () => {
+    expect(() =>
+      validateApprovalResultCardInfo({ ...validInfo, minutesUrl: '' })
+    ).toThrow('Minutes URL is required');
   });
 });
