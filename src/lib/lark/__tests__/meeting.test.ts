@@ -401,7 +401,7 @@ describe('MeetingService', () => {
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: createMockLarkMeeting(),
+          data: { meeting: createMockLarkMeeting() },
         }),
       };
       vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
@@ -448,7 +448,7 @@ describe('MeetingService', () => {
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: createMockLarkMeeting(),
+          data: { meeting: createMockLarkMeeting() },
         }),
       };
       vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
@@ -470,7 +470,7 @@ describe('MeetingService', () => {
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: createMockLarkMeeting(),
+          data: { meeting: createMockLarkMeeting() },
         }),
       };
 

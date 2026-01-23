@@ -148,11 +148,11 @@ export const handlers = [
         );
       }
 
-      // Return in the format expected by larkMeetingSchema (single meeting)
+      // Return in the format expected by larkMeetingDetailDataSchema (nested under meeting)
       return HttpResponse.json({
         code: 0,
         msg: 'ok',
-        data: meeting,
+        data: { meeting },
       });
     }
   ),

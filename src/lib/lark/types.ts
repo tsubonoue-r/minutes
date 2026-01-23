@@ -264,6 +264,15 @@ export const larkMeetingListResponseSchema = larkApiResponseSchema(larkMeetingLi
 export type LarkMeetingListResponse = z.infer<typeof larkMeetingListResponseSchema>;
 
 /**
+ * Meeting detail response data (nested under data.meeting)
+ */
+export const larkMeetingDetailDataSchema = z.object({
+  meeting: larkMeetingSchema,
+});
+
+export type LarkMeetingDetailData = z.infer<typeof larkMeetingDetailDataSchema>;
+
+/**
  * Participant user type
  */
 export const larkParticipantUserTypeSchema = z.enum([

@@ -7,13 +7,14 @@ import type { LarkClient } from './client';
 import { LarkClientError } from './client';
 import {
   type LarkMeeting,
+  type LarkMeetingDetailData,
   type LarkMeetingListData,
   type LarkMeetingParticipant,
   type LarkMeetingRecording,
   type LarkParticipantListData,
   type LarkRecordingListData,
+  larkMeetingDetailDataSchema,
   larkMeetingListResponseSchema,
-  larkMeetingSchema,
   larkParticipantListResponseSchema,
   larkRecordingListResponseSchema,
   LarkVCApiEndpoints,
@@ -353,7 +354,7 @@ export class MeetingService {
     try {
       const endpoint = LarkVCApiEndpoints.MEETING_GET.replace(':meeting_id', meetingId);
 
-      const response = await this.client.authenticatedRequest<LarkMeeting>(
+      const response = await this.client.authenticatedRequest<LarkMeetingDetailData>(
         endpoint,
         accessToken
       );
@@ -362,10 +363,10 @@ export class MeetingService {
         throw new MeetingNotFoundError(meetingId);
       }
 
-      // Validate response with Zod
-      const validated = larkMeetingSchema.parse(response.data);
+      // Validate response and unwrap nested meeting field
+      const validated = larkMeetingDetailDataSchema.parse(response.data);
 
-      return transformLarkMeeting(validated);
+      return transformLarkMeeting(validated.meeting);
     } catch (error) {
       if (error instanceof MeetingNotFoundError) {
         throw error;
