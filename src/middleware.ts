@@ -16,7 +16,7 @@ import type { SessionData } from '@/types/auth';
 /**
  * Protected route patterns that require authentication
  */
-const PROTECTED_ROUTES = ['/dashboard', '/settings', '/minutes'];
+const PROTECTED_ROUTES = ['/dashboard', '/settings', '/minutes', '/meetings', '/action-items', '/templates'];
 
 /**
  * Public routes that should redirect authenticated users

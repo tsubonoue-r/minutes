@@ -8,7 +8,8 @@ import { getIronSession, type SessionOptions } from 'iron-session';
 import type { SessionData, LarkUser } from '@/types/auth';
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import { createLarkClient } from '@/lib/lark/client';
-import { getAppAccessToken } from '@/lib/lark/oauth';
+import { getAppAccessToken, refreshAccessToken } from '@/lib/lark/oauth';
+import { checkTokenExpiration, calculateExpirationTimestamp, calculateRefreshTokenExpirationTimestamp } from '@/lib/lark/token';
 
 /**
  * Session cookie name
@@ -116,6 +117,49 @@ export async function getSession(): Promise<SessionData | null> {
 
     if (!session.isAuthenticated) {
       return null;
+    }
+
+    // Auto-refresh expired access tokens
+    if (session.tokenExpiresAt !== undefined && session.refreshToken !== undefined) {
+      const status = checkTokenExpiration(session.tokenExpiresAt);
+
+      if (status.isExpired || status.expiresSoon) {
+        // Check if refresh token is still valid
+        if (session.refreshTokenExpiresAt !== undefined && Date.now() > session.refreshTokenExpiresAt) {
+          // Refresh token expired - clear session
+          session.isAuthenticated = false;
+          delete session.accessToken;
+          delete session.refreshToken;
+          await session.save();
+          return null;
+        }
+
+        // Attempt token refresh
+        try {
+          const client = createLarkClient();
+          const result = await refreshAccessToken(client, session.refreshToken);
+
+          if (result.success) {
+            const now = Date.now();
+            session.user = result.data.user;
+            session.accessToken = result.data.token.accessToken;
+            session.refreshToken = result.data.token.refreshToken;
+            session.tokenExpiresAt = calculateExpirationTimestamp(result.data.token, now);
+            session.refreshTokenExpiresAt = calculateRefreshTokenExpirationTimestamp(result.data.token, now);
+            await session.save();
+            console.log('[getSession] Token refreshed successfully');
+          } else {
+            console.warn('[getSession] Token refresh failed:', result.error.message);
+            session.isAuthenticated = false;
+            delete session.accessToken;
+            delete session.refreshToken;
+            await session.save();
+            return null;
+          }
+        } catch (refreshError) {
+          console.error('[getSession] Token refresh error:', refreshError);
+        }
+      }
     }
 
     return session;
