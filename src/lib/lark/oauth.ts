@@ -11,7 +11,9 @@ import {
   LarkApiEndpoints,
   userAccessTokenResponseSchema,
   refreshTokenResponseSchema,
+  userInfoResponseSchema,
   type UserAccessTokenData,
+  type UserInfoData,
 } from './types';
 
 /**
@@ -50,9 +52,9 @@ export function buildAuthorizationUrl(
 }
 
 /**
- * Transform Lark API user data to our LarkUser type
+ * Transform Lark user info data to our LarkUser type
  */
-function transformUserData(data: UserAccessTokenData): LarkUser {
+function transformUserInfoData(data: UserInfoData): LarkUser {
   return {
     openId: data.open_id,
     unionId: data.union_id,
@@ -65,6 +67,25 @@ function transformUserData(data: UserAccessTokenData): LarkUser {
     email: data.email,
     mobile: data.mobile,
     tenantKey: data.tenant_key,
+  };
+}
+
+/**
+ * Transform token response user data (if available) to LarkUser type
+ */
+function transformUserData(data: UserAccessTokenData): LarkUser {
+  return {
+    openId: data.open_id ?? 'unknown',
+    unionId: data.union_id ?? 'unknown',
+    name: data.name ?? 'Unknown',
+    enName: data.en_name,
+    avatarUrl: data.avatar_url ?? '',
+    avatarThumb: data.avatar_thumb,
+    avatarMiddle: data.avatar_middle,
+    avatarBig: data.avatar_big,
+    email: data.email,
+    mobile: data.mobile,
+    tenantKey: data.tenant_key ?? 'unknown',
   };
 }
 
@@ -104,6 +125,7 @@ export async function exchangeCodeForToken(
   code: string
 ): Promise<AuthResult<OAuthAuthenticationResult>> {
   try {
+    // Step 1: Exchange code for access token
     const response = await client.post<unknown>(
       LarkApiEndpoints.USER_ACCESS_TOKEN,
       {
@@ -117,14 +139,11 @@ export async function exchangeCodeForToken(
       }
     );
 
-    // Debug: Log the actual response structure
-    console.log('[OAuth] User access token response:', JSON.stringify(response, null, 2));
-
-    // Validate response structure
+    // Validate token response structure
     const parseResult = userAccessTokenResponseSchema.safeParse(response);
 
     if (!parseResult.success) {
-      console.error('[OAuth] Parse error paths:', parseResult.error.issues.map(e => e.path));
+      console.error('[OAuth] Token parse error:', parseResult.error.issues.map(e => e.path));
       return authFailure(
         'token_exchange_failed',
         'Invalid response structure from Lark API',
@@ -132,18 +151,47 @@ export async function exchangeCodeForToken(
       );
     }
 
-    const { data } = parseResult;
+    const { data: tokenResponse } = parseResult;
 
-    if (data.code !== 0 || data.data === undefined) {
+    if (tokenResponse.code !== 0 || tokenResponse.data === undefined) {
       return authFailure(
         'token_exchange_failed',
-        data.msg,
-        { code: data.code }
+        tokenResponse.msg ?? tokenResponse.message ?? 'Unknown error',
+        { code: tokenResponse.code }
       );
     }
 
-    const user = transformUserData(data.data);
-    const token = transformTokenData(data.data);
+    const token = transformTokenData(tokenResponse.data);
+
+    // Step 2: Fetch user info using the new access token
+    let user: LarkUser;
+
+    if (tokenResponse.data.open_id !== undefined) {
+      // User info is already in the token response (some Lark API versions)
+      user = transformUserData(tokenResponse.data);
+    } else {
+      // Fetch user info separately
+      const userInfoResponse = await client.get<unknown>(
+        LarkApiEndpoints.USER_INFO,
+        {
+          headers: {
+            Authorization: `Bearer ${token.accessToken}`,
+          },
+        }
+      );
+
+      const userInfoResult = userInfoResponseSchema.safeParse(userInfoResponse);
+
+      if (!userInfoResult.success || userInfoResult.data.code !== 0 || userInfoResult.data.data === undefined) {
+        console.error('[OAuth] User info fetch failed:', userInfoResult.success ? userInfoResult.data : userInfoResult.error);
+        // Fallback: use minimal user data from token
+        user = transformUserData(tokenResponse.data);
+      } else {
+        user = transformUserInfoData(userInfoResult.data.data);
+      }
+    }
+
+    console.log('[OAuth] Authentication successful for user:', user.name);
 
     return authSuccess({ user, token });
   } catch (error) {
@@ -204,13 +252,37 @@ export async function refreshAccessToken(
     if (data.code !== 0 || data.data === undefined) {
       return authFailure(
         'token_refresh_failed',
-        data.msg,
+        data.msg ?? data.message ?? 'Unknown error',
         { code: data.code }
       );
     }
 
-    const user = transformUserData(data.data);
     const token = transformTokenData(data.data);
+
+    // Fetch user info with refreshed token
+    let user: LarkUser;
+    if (data.data.open_id !== undefined) {
+      user = transformUserData(data.data);
+    } else {
+      try {
+        const userInfoResponse = await client.get<unknown>(
+          LarkApiEndpoints.USER_INFO,
+          {
+            headers: {
+              Authorization: `Bearer ${token.accessToken}`,
+            },
+          }
+        );
+        const userInfoResult = userInfoResponseSchema.safeParse(userInfoResponse);
+        if (userInfoResult.success && userInfoResult.data.code === 0 && userInfoResult.data.data !== undefined) {
+          user = transformUserInfoData(userInfoResult.data.data);
+        } else {
+          user = transformUserData(data.data);
+        }
+      } catch {
+        user = transformUserData(data.data);
+      }
+    }
 
     return authSuccess({ user, token });
   } catch (error) {

@@ -136,11 +136,11 @@ export class LarkClient {
         );
       }
 
-      const data = (await response.json()) as LarkApiResponse<T>;
+      const data = (await response.json()) as LarkApiResponse<T> & { message?: string };
 
       // Check for Lark API error response
       if (data.code !== 0) {
-        throw new LarkClientError(data.msg, data.code, endpoint, data);
+        throw new LarkClientError(data.msg ?? data.message ?? 'Unknown error', data.code, endpoint, data);
       }
 
       return data;

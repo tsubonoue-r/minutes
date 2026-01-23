@@ -11,25 +11,25 @@ import { z } from 'zod';
 export interface LarkApiResponse<T> {
   /** Response code (0 for success) */
   readonly code: number;
-  /** Response message */
-  readonly msg: string;
+  /** Response message (some endpoints use 'msg', others use 'message') */
+  readonly msg?: string;
+  /** Response message (alternative field name) */
+  readonly message?: string;
   /** Response data */
   readonly data?: T;
 }
 
 /**
  * Zod schema for base API response validation
+ * Lark API uses both 'msg' and 'message' fields depending on endpoint
  */
 export const larkApiResponseSchema = <T extends z.ZodType>(
   dataSchema: T
-): z.ZodObject<{
-  code: z.ZodNumber;
-  msg: z.ZodString;
-  data: z.ZodOptional<T>;
-}> =>
+) =>
   z.object({
     code: z.number(),
-    msg: z.string(),
+    msg: z.string().optional(),
+    message: z.string().optional(),
     data: dataSchema.optional(),
   });
 
@@ -62,17 +62,18 @@ export const userAccessTokenDataSchema = z.object({
   refresh_token: z.string(),
   refresh_expires_in: z.number(),
   scope: z.string().optional(),
+  // User info fields (may not be present in OIDC token response)
   name: z.string().optional(),
   en_name: z.string().optional(),
   avatar_url: z.string().optional(),
   avatar_thumb: z.string().optional(),
   avatar_middle: z.string().optional(),
   avatar_big: z.string().optional(),
-  open_id: z.string(),
-  union_id: z.string(),
+  open_id: z.string().optional(),
+  union_id: z.string().optional(),
   email: z.string().optional(),
   mobile: z.string().optional(),
-  tenant_key: z.string(),
+  tenant_key: z.string().optional(),
 });
 
 export type UserAccessTokenData = z.infer<typeof userAccessTokenDataSchema>;
@@ -104,19 +105,18 @@ export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
  * User info response data
  */
 export const userInfoDataSchema = z.object({
-  user: z.object({
-    open_id: z.string(),
-    union_id: z.string(),
-    name: z.string(),
-    en_name: z.string().optional(),
-    avatar_url: z.string(),
-    avatar_thumb: z.string().optional(),
-    avatar_middle: z.string().optional(),
-    avatar_big: z.string().optional(),
-    email: z.string().optional(),
-    mobile: z.string().optional(),
-    tenant_key: z.string(),
-  }),
+  open_id: z.string(),
+  union_id: z.string(),
+  user_id: z.string().optional(),
+  name: z.string(),
+  en_name: z.string().optional(),
+  avatar_url: z.string().optional(),
+  avatar_thumb: z.string().optional(),
+  avatar_middle: z.string().optional(),
+  avatar_big: z.string().optional(),
+  email: z.string().optional(),
+  mobile: z.string().optional(),
+  tenant_key: z.string(),
 });
 
 export type UserInfoData = z.infer<typeof userInfoDataSchema>;
