@@ -235,6 +235,7 @@ export async function GET(request: Request): Promise<Response> {
     // Check cache first
     const cache = getCache();
     const cacheKeyValue = cacheKeyWithParams(CACHE_KEYS.MEETINGS_LIST, {
+      userId: session.user?.openId,
       page: String(params.page),
       limit: String(params.limit),
       search: params.search,
@@ -252,7 +253,7 @@ export async function GET(request: Request): Promise<Response> {
 
     // Create service and fetch meetings
     const client = createLarkClient();
-    const meetingService = createMeetingService(client, session.accessToken);
+    const meetingService = createMeetingService(client, session.accessToken, session.user?.openId);
 
     const result = await meetingService.getMeetings({
       page: params.page,

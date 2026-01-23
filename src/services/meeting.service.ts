@@ -148,7 +148,8 @@ function transformLarkMeeting(larkMeeting: LarkMeeting): Meeting {
 export class MeetingService {
   constructor(
     private readonly client: LarkClient,
-    private readonly accessToken: string
+    private readonly accessToken: string,
+    private readonly userId?: string
   ) {}
 
   /**
@@ -180,6 +181,11 @@ export class MeetingService {
           )
         ),
       };
+
+      // Filter by user_id to show only meetings the user participated in
+      if (this.userId) {
+        params['user_id'] = this.userId;
+      }
 
       // Fetch from Lark API
       const response = await this.client.authenticatedRequest<LarkMeetingListData>(
@@ -285,7 +291,8 @@ export class MeetingService {
  */
 export function createMeetingService(
   client: LarkClient,
-  accessToken: string
+  accessToken: string,
+  userId?: string
 ): MeetingService {
-  return new MeetingService(client, accessToken);
+  return new MeetingService(client, accessToken, userId);
 }

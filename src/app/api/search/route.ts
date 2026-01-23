@@ -159,14 +159,14 @@ function parseQueryParams(url: URL): Partial<SearchQuery> {
  * @param accessToken - User access token for API authentication
  * @returns Data sources populated from Lark services
  */
-async function getSearchDataSources(accessToken: string): Promise<SearchDataSources> {
+async function getSearchDataSources(accessToken: string, userId?: string): Promise<SearchDataSources> {
   const client = createLarkClient();
 
   // Fetch data sources concurrently for better performance
   const [meetingsResult, minutesResult, transcriptsResult] = await Promise.allSettled([
-    fetchMeetings(client, accessToken),
+    fetchMeetings(client, accessToken, userId),
     fetchMinutes(client, accessToken),
-    fetchTranscripts(accessToken),
+    fetchTranscripts(accessToken, userId),
   ]);
 
   const meetings: Meeting[] =
@@ -199,9 +199,10 @@ async function getSearchDataSources(accessToken: string): Promise<SearchDataSour
  */
 async function fetchMeetings(
   client: ReturnType<typeof createLarkClient>,
-  accessToken: string
+  accessToken: string,
+  userId?: string
 ): Promise<Meeting[]> {
-  const meetingService = createMeetingService(client, accessToken);
+  const meetingService = createMeetingService(client, accessToken, userId);
 
   // Fetch recent meetings (up to 100 for search indexing)
   const result = await meetingService.getMeetings({
@@ -256,10 +257,10 @@ async function fetchMinutes(
  * @param accessToken - User access token
  * @returns Array of transcripts
  */
-async function fetchTranscripts(accessToken: string): Promise<Transcript[]> {
+async function fetchTranscripts(accessToken: string, userId?: string): Promise<Transcript[]> {
   const transcriptService = createTranscriptService();
   const client = createLarkClient();
-  const meetingService = createMeetingService(client, accessToken);
+  const meetingService = createMeetingService(client, accessToken, userId);
 
   // Get recent meetings to check for transcripts
   const meetingsResult = await meetingService.getMeetings({
@@ -379,7 +380,7 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     // Get data sources from Lark APIs
-    const dataSources = await getSearchDataSources(session.accessToken);
+    const dataSources = await getSearchDataSources(session.accessToken, session.user?.openId);
 
     // Execute search
     const searchService = createSearchService(dataSources);
@@ -504,7 +505,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Get data sources from Lark APIs
-    const dataSources = await getSearchDataSources(session.accessToken);
+    const dataSources = await getSearchDataSources(session.accessToken, session.user?.openId);
 
     // Execute search
     const searchService = createSearchService(dataSources);
