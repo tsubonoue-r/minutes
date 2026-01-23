@@ -31,10 +31,10 @@ interface StatusSegment {
 }
 
 const STATUS_SEGMENTS: readonly StatusSegment[] = [
-  { key: 'completed', label: 'Completed', color: '#22c55e', bgClass: 'bg-green-500' },
-  { key: 'inProgress', label: 'In Progress', color: '#3b82f6', bgClass: 'bg-blue-500' },
-  { key: 'pending', label: 'Pending', color: '#94a3b8', bgClass: 'bg-slate-400' },
-  { key: 'overdue', label: 'Overdue', color: '#ef4444', bgClass: 'bg-red-500' },
+  { key: 'completed', label: '完了', color: '#22c55e', bgClass: 'bg-green-500' },
+  { key: 'inProgress', label: '進行中', color: '#3b82f6', bgClass: 'bg-blue-500' },
+  { key: 'pending', label: '未着手', color: '#94a3b8', bgClass: 'bg-slate-400' },
+  { key: 'overdue', label: '期限切れ', color: '#ef4444', bgClass: 'bg-red-500' },
 ];
 
 /**
@@ -90,7 +90,7 @@ export function ActionItemProgressChart({
       className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 ${className}`}
     >
       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Action Item Progress
+        アクションアイテム進捗
       </h3>
 
       <div className="flex items-center gap-8">
@@ -135,7 +135,7 @@ export function ActionItemProgressChart({
               {stats.completionRate}%
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              Complete
+              完了
             </span>
           </div>
         </div>
@@ -173,10 +173,10 @@ export function ActionItemProgressChart({
         <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500 dark:text-slate-400">
-              Avg. completion time
+              平均完了時間
             </span>
             <span className="font-medium text-slate-900 dark:text-white">
-              {stats.avgCompletionDays.toFixed(1)} days
+              {stats.avgCompletionDays.toFixed(1)}日
             </span>
           </div>
         </div>

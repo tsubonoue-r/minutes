@@ -42,14 +42,14 @@ export function ParticipantLeaderboard({
       className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 ${className}`}
     >
       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Top Participants
+        参加者ランキング
       </h3>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Unique Participants
+            ユニーク参加者数
           </p>
           <p className="text-xl font-bold text-slate-900 dark:text-white">
             {stats.totalUnique}
@@ -57,7 +57,7 @@ export function ParticipantLeaderboard({
         </div>
         <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Avg. per Meeting
+            会議あたり平均
           </p>
           <p className="text-xl font-bold text-slate-900 dark:text-white">
             {stats.avgPerMeeting}
@@ -97,7 +97,7 @@ export function ParticipantLeaderboard({
                   {participant.name}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {participant.actionItemCount} action items
+                  {participant.actionItemCount}件のアクション
                 </p>
               </div>
 
@@ -107,14 +107,14 @@ export function ParticipantLeaderboard({
                   {participant.meetingCount}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  meetings
+                  回参加
                 </p>
               </div>
             </div>
           ))
         ) : (
           <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-            <p>No participant data available</p>
+            <p>参加者データがありません</p>
           </div>
         )}
       </div>

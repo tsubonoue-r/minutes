@@ -33,12 +33,12 @@ const PERIOD_OPTIONS: ReadonlyArray<{
   readonly value: DashboardPeriod;
   readonly label: string;
 }> = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'year', label: 'Year' },
-  { value: 'custom', label: 'Custom' },
+  { value: 'today', label: '今日' },
+  { value: 'week', label: '今週' },
+  { value: 'month', label: '今月' },
+  { value: 'quarter', label: '四半期' },
+  { value: 'year', label: '年間' },
+  { value: 'custom', label: 'カスタム' },
 ];
 
 /**
@@ -119,7 +119,7 @@ export function PeriodFilter({
               htmlFor="start-date"
               className="text-sm text-slate-600 dark:text-slate-400"
             >
-              From
+              開始
             </label>
             <input
               type="date"
@@ -134,7 +134,7 @@ export function PeriodFilter({
               htmlFor="end-date"
               className="text-sm text-slate-600 dark:text-slate-400"
             >
-              To
+              終了
             </label>
             <input
               type="date"

@@ -49,14 +49,14 @@ function formatDateFull(date: Date): string {
  */
 function formatDuration(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes}min`;
+    return `${minutes}分`;
   }
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (remainingMinutes === 0) {
-    return `${hours}h`;
+    return `${hours}時間`;
   }
-  return `${hours}h${remainingMinutes}m`;
+  return `${hours}時間${remainingMinutes}分`;
 }
 
 /**
@@ -69,10 +69,10 @@ function getStatusConfig(
     MeetingStatus,
     { label: string; variant: 'default' | 'success' | 'warning' | 'error' }
   > = {
-    scheduled: { label: 'Scheduled', variant: 'default' },
-    in_progress: { label: 'In Progress', variant: 'warning' },
-    ended: { label: 'Ended', variant: 'success' },
-    cancelled: { label: 'Cancelled', variant: 'error' },
+    scheduled: { label: '予定', variant: 'default' },
+    in_progress: { label: '進行中', variant: 'warning' },
+    ended: { label: '終了', variant: 'success' },
+    cancelled: { label: 'キャンセル', variant: 'error' },
   };
   return config[status];
 }
@@ -185,7 +185,7 @@ export function MeetingCard({
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m9 5.197v1"
               />
             </svg>
-            <span>{meeting.participantCount} members</span>
+            <span>{meeting.participantCount}人</span>
           </div>
 
           {/* Recording indicator */}
@@ -199,7 +199,7 @@ export function MeetingCard({
               >
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
               </svg>
-              <span className="text-green-600 dark:text-green-400">Recorded</span>
+              <span className="text-green-600 dark:text-green-400">録画あり</span>
             </div>
           )}
         </div>

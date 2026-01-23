@@ -89,7 +89,7 @@ function MultiSelectDropdown<T extends string>({
       ? label
       : selected.length === 1
         ? options.find((o) => o.value === selected[0])?.label ?? label
-        : `${selected.length} selected`;
+        : `${selected.length}件選択`;
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -291,7 +291,7 @@ function SingleSelectDropdown({
             `}
             onClick={() => handleOptionClick(undefined)}
           >
-            All
+            すべて
           </li>
           {options.map((option) => (
             <li
@@ -437,7 +437,7 @@ function ActionItemFiltersInner({
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
               />
             </svg>
-            <span>Filters</span>
+            <span>フィルター</span>
             {hasFilters && (
               <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-lark-primary rounded-full">
                 !
@@ -470,14 +470,14 @@ function ActionItemFiltersInner({
           >
             <div className="grid grid-cols-2 gap-2">
               <MultiSelectDropdown
-                label="Status"
+                label="ステータス"
                 options={statusOptions}
                 selected={filters.statuses}
                 onChange={handleStatusChange}
                 className="w-full"
               />
               <MultiSelectDropdown
-                label="Priority"
+                label="優先度"
                 options={priorityOptions}
                 selected={filters.priorities}
                 onChange={handlePriorityChange}
@@ -488,7 +488,7 @@ function ActionItemFiltersInner({
             <div className="grid grid-cols-2 gap-2">
               {assignees.length > 0 && (
                 <SingleSelectDropdown
-                  label="Assignee"
+                  label="担当者"
                   options={assigneeOptions}
                   selected={filters.assigneeId}
                   onChange={handleAssigneeChange}
@@ -497,7 +497,7 @@ function ActionItemFiltersInner({
               )}
               {meetings.length > 0 && (
                 <SingleSelectDropdown
-                  label="Meeting"
+                  label="会議"
                   options={meetingOptions}
                   selected={filters.meetingId}
                   onChange={handleMeetingChange}
@@ -514,7 +514,7 @@ function ActionItemFiltersInner({
                   onChange={handleOverdueChange}
                   className="w-4 h-4 rounded border-gray-300 text-lark-primary focus:ring-lark-primary"
                 />
-                <span>Overdue only</span>
+                <span>期限切れのみ</span>
               </label>
 
               {hasFilters && (
@@ -526,7 +526,7 @@ function ActionItemFiltersInner({
                     text-gray-500 hover:text-lark-text
                     transition-colors duration-150
                   "
-                  aria-label="Clear all filters"
+                  aria-label="フィルターをすべてクリア"
                 >
                   <svg
                     className="w-4 h-4"
@@ -542,7 +542,7 @@ function ActionItemFiltersInner({
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  <span>Clear</span>
+                  <span>クリア</span>
                 </button>
               )}
             </div>
@@ -554,7 +554,7 @@ function ActionItemFiltersInner({
       <div className="hidden md:flex flex-wrap items-center gap-3">
         {/* Status filter */}
         <MultiSelectDropdown
-          label="Status"
+          label="ステータス"
           options={statusOptions}
           selected={filters.statuses}
           onChange={handleStatusChange}
@@ -562,7 +562,7 @@ function ActionItemFiltersInner({
 
         {/* Priority filter */}
         <MultiSelectDropdown
-          label="Priority"
+          label="優先度"
           options={priorityOptions}
           selected={filters.priorities}
           onChange={handlePriorityChange}
@@ -571,7 +571,7 @@ function ActionItemFiltersInner({
         {/* Assignee filter */}
         {assignees.length > 0 && (
           <SingleSelectDropdown
-            label="Assignee"
+            label="担当者"
             options={assigneeOptions}
             selected={filters.assigneeId}
             onChange={handleAssigneeChange}
@@ -581,7 +581,7 @@ function ActionItemFiltersInner({
         {/* Meeting filter */}
         {meetings.length > 0 && (
           <SingleSelectDropdown
-            label="Meeting"
+            label="会議"
             options={meetingOptions}
             selected={filters.meetingId}
             onChange={handleMeetingChange}
@@ -596,7 +596,7 @@ function ActionItemFiltersInner({
             onChange={handleOverdueChange}
             className="w-4 h-4 rounded border-gray-300 text-lark-primary focus:ring-lark-primary"
           />
-          <span>Overdue only</span>
+          <span>期限切れのみ</span>
         </label>
 
         {/* Clear filters button */}
@@ -609,7 +609,7 @@ function ActionItemFiltersInner({
               text-gray-500 hover:text-lark-text
               transition-colors duration-150
             "
-            aria-label="Clear all filters"
+            aria-label="フィルターをすべてクリア"
           >
             <svg
               className="w-4 h-4"
@@ -625,7 +625,7 @@ function ActionItemFiltersInner({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            <span>Clear</span>
+            <span>クリア</span>
           </button>
         )}
       </div>

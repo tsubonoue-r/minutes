@@ -36,7 +36,7 @@ export interface ActionItemSearchProps {
 function ActionItemSearchInner({
   value,
   onChange,
-  placeholder = 'Search action items...',
+  placeholder = 'アクションアイテムを検索...',
   debounceMs = 300,
   disabled = false,
   className = '',
@@ -148,7 +148,7 @@ function ActionItemSearchInner({
             text-gray-400 hover:text-gray-600
             transition-colors duration-150
           "
-          aria-label="Clear search"
+          aria-label="検索をクリア"
         >
           <svg
             className="w-5 h-5"

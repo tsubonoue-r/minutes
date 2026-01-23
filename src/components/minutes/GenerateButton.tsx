@@ -203,7 +203,7 @@ function GenerateButtonInner({
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span>{state.error ?? 'Generation failed'}</span>
+          <span>{state.error ?? '生成に失敗しました'}</span>
         </div>
 
         {/* Retry button */}
@@ -217,7 +217,7 @@ function GenerateButtonInner({
             hover:bg-blue-600 transition-colors
             focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
           "
-          aria-label="Retry generation"
+          aria-label="生成を再試行"
         >
           <svg
             className="w-4 h-4"
@@ -233,7 +233,7 @@ function GenerateButtonInner({
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          <span>Retry</span>
+          <span>再試行</span>
         </button>
       </div>
     );
@@ -247,7 +247,7 @@ function GenerateButtonInner({
         <div className="flex items-center gap-3">
           <Spinner className="w-5 h-5 text-lark-primary" />
           <span className="text-sm text-gray-600">
-            {state.currentStep ?? 'Generating minutes...'}
+            {state.currentStep ?? '議事録を生成中...'}
           </span>
         </div>
 
@@ -272,7 +272,7 @@ function GenerateButtonInner({
         focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
         ${className}
       `}
-      aria-label={hasExistingMinutes ? 'Regenerate minutes' : 'Generate minutes'}
+      aria-label={hasExistingMinutes ? '議事録を再生成' : '議事録を生成'}
     >
       {/* Sparkle icon */}
       <svg
@@ -289,7 +289,7 @@ function GenerateButtonInner({
           d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
         />
       </svg>
-      <span>{hasExistingMinutes ? 'Regenerate Minutes' : 'Generate Minutes'}</span>
+      <span>{hasExistingMinutes ? '議事録を再生成' : '議事録を生成'}</span>
     </button>
   );
 }

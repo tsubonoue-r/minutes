@@ -107,7 +107,7 @@ export function MinutesSkeleton({
     <div
       className={`bg-white rounded-lg border border-lark-border ${className}`}
       aria-busy="true"
-      aria-label="Loading minutes..."
+      aria-label="議事録を読み込み中..."
     >
       {/* Header */}
       <div className="p-4 border-b border-lark-border">

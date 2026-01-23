@@ -60,7 +60,7 @@ export default function TemplatesPage(): JSX.Element {
     try {
       const response = await fetch('/api/templates');
       if (!response.ok) {
-        throw new Error('Failed to fetch templates');
+        throw new Error('テンプレートの取得に失敗しました');
       }
       const data = await response.json() as { data: Template[] };
       setState((prev) => ({
@@ -72,7 +72,7 @@ export default function TemplatesPage(): JSX.Element {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Unknown error',
+        error: err instanceof Error ? err.message : '不明なエラー',
       }));
     }
   }, []);

@@ -50,10 +50,10 @@ function getStatusVariant(status: MeetingStatus): BadgeVariant {
  */
 function getStatusLabel(status: MeetingStatus): string {
   const labels: Record<MeetingStatus, string> = {
-    scheduled: 'Scheduled',
-    in_progress: 'In Progress',
-    ended: 'Ended',
-    cancelled: 'Cancelled',
+    scheduled: '予定',
+    in_progress: '進行中',
+    ended: '終了',
+    cancelled: 'キャンセル',
   };
   return labels[status];
 }
@@ -63,10 +63,10 @@ function getStatusLabel(status: MeetingStatus): string {
  */
 function formatDateTime(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString('ja-JP', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -77,7 +77,7 @@ function formatDateTime(isoString: string): string {
  */
 function formatTime(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleTimeString('ja-JP', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -88,14 +88,14 @@ function formatTime(isoString: string): string {
  */
 function formatDuration(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes} min`;
+    return `${minutes}分`;
   }
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (remainingMinutes === 0) {
-    return `${hours}h`;
+    return `${hours}時間`;
   }
-  return `${hours}h ${remainingMinutes}min`;
+  return `${hours}時間${remainingMinutes}分`;
 }
 
 /**
@@ -137,7 +137,7 @@ export function MeetingDetailHeader({
             {title}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Meeting #{meetingNo}
+            会議 #{meetingNo}
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -170,7 +170,7 @@ export function MeetingDetailHeader({
             </svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Start Time</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">開始時間</p>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
               {formatDateTime(startTime)}
             </p>
@@ -198,7 +198,7 @@ export function MeetingDetailHeader({
             </svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">End Time</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">終了時間</p>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
               {formatTime(endTime)}
             </p>
@@ -226,7 +226,7 @@ export function MeetingDetailHeader({
             </svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Duration</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">所要時間</p>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
               {formatDuration(durationMinutes)}
             </p>
@@ -244,7 +244,7 @@ export function MeetingDetailHeader({
               size="md"
             />
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Host</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">ホスト</p>
               <p className="text-sm font-medium text-slate-900 dark:text-white">
                 {host.name}
               </p>
@@ -265,7 +265,7 @@ export function MeetingDetailHeader({
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            <span>{participantCount} participants</span>
+            <span>{participantCount}人の参加者</span>
           </div>
         </div>
       </div>

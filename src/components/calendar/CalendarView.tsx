@@ -361,25 +361,25 @@ export function CalendarView({
           <ViewModeButton
             mode="month"
             currentMode={currentViewMode}
-            label="Month"
+            label="月"
             onClick={handleViewModeChange}
           />
           <ViewModeButton
             mode="week"
             currentMode={currentViewMode}
-            label="Week"
+            label="週"
             onClick={handleViewModeChange}
           />
           <ViewModeButton
             mode="day"
             currentMode={currentViewMode}
-            label="Day"
+            label="日"
             onClick={handleViewModeChange}
           />
           <ViewModeButton
             mode="list"
             currentMode={currentViewMode}
-            label="List"
+            label="一覧"
             onClick={handleViewModeChange}
           />
         </div>

@@ -545,7 +545,7 @@ export function ActionItemList({
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
           />
         </svg>
-        <p className="text-sm">No action items</p>
+        <p className="text-sm">アクションアイテムはありません</p>
       </div>
     );
   }
@@ -566,33 +566,33 @@ export function ActionItemList({
       {/* Summary */}
       <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
         <span>
-          {filteredItems.length} of {localItems.length} items
+          {localItems.length}件中{filteredItems.length}件
         </span>
         <span className="text-gray-300">|</span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-green-500" />
-          {localItems.filter((i) => i.status === 'completed').length} completed
+          {localItems.filter((i) => i.status === 'completed').length}件完了
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-yellow-500" />
-          {localItems.filter((i) => i.status === 'in_progress').length} in progress
+          {localItems.filter((i) => i.status === 'in_progress').length}件進行中
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-gray-400" />
-          {localItems.filter((i) => i.status === 'pending').length} pending
+          {localItems.filter((i) => i.status === 'pending').length}件未着手
         </span>
       </div>
 
       {/* List */}
       {filteredItems.length === 0 ? (
         <div className="p-8 text-center text-gray-500 border border-dashed border-lark-border rounded-lg">
-          <p className="text-sm">No items match the selected filters</p>
+          <p className="text-sm">選択したフィルター条件に一致するアイテムがありません</p>
         </div>
       ) : (
         <div
           className="space-y-3"
           role="list"
-          aria-label="Action items"
+          aria-label="アクションアイテム"
         >
           {filteredItems.map((item) => (
             <div key={item.id} role="listitem">

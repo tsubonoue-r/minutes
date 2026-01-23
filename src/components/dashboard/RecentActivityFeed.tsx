@@ -109,15 +109,15 @@ function formatRelativeTime(timestamp: string): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMins < 1) {
-    return 'Just now';
+    return 'たった今';
   } else if (diffMins < 60) {
-    return `${diffMins}m ago`;
+    return `${diffMins}分前`;
   } else if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return `${diffHours}時間前`;
   } else if (diffDays < 7) {
-    return `${diffDays}d ago`;
+    return `${diffDays}日前`;
   } else {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('ja-JP', {
       month: 'short',
       day: 'numeric',
     });
@@ -149,7 +149,7 @@ export function RecentActivityFeed({
       className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 ${className}`}
     >
       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Recent Activity
+        最近のアクティビティ
       </h3>
 
       {displayedActivities.length > 0 ? (
@@ -225,10 +225,10 @@ export function RecentActivityFeed({
             </svg>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            No recent activity
+            最近のアクティビティはありません
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Start by syncing your meetings
+            会議を同期して始めましょう
           </p>
         </div>
       )}

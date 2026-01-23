@@ -128,7 +128,7 @@ export function LogoutButton({
     }
   }, [redirectTo]);
 
-  const buttonText = children ?? 'Sign Out';
+  const buttonText = children ?? 'ログアウト';
 
   return (
     <button
@@ -136,15 +136,15 @@ export function LogoutButton({
       onClick={() => { void handleLogout(); }}
       disabled={isLoading}
       className={`${VARIANT_STYLES[variant]} ${className}`}
-      aria-label={iconOnly ? 'Sign out' : undefined}
-      title={iconOnly ? 'Sign out' : undefined}
+      aria-label={iconOnly ? 'ログアウト' : undefined}
+      title={iconOnly ? 'ログアウト' : undefined}
     >
       {isLoading ? (
         <LoadingSpinner />
       ) : (
         <LogoutIcon className="w-4 h-4" />
       )}
-      {!iconOnly && <span>{isLoading ? 'Signing out...' : buttonText}</span>}
+      {!iconOnly && <span>{isLoading ? 'ログアウト中...' : buttonText}</span>}
     </button>
   );
 }

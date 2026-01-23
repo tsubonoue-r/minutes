@@ -213,7 +213,7 @@ function MinutesViewerInner({
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        <p className="text-sm">No minutes available</p>
+        <p className="text-sm">議事録はありません</p>
       </div>
     );
   }
@@ -222,7 +222,7 @@ function MinutesViewerInner({
     <div
       className={`bg-white rounded-lg border border-lark-border ${className}`}
       role="region"
-      aria-label="Meeting minutes"
+      aria-label="会議議事録"
     >
       {/* Header */}
       <header className="p-4 border-b border-lark-border">
@@ -268,7 +268,7 @@ function MinutesViewerInner({
                 hover:bg-gray-50 transition-colors
                 focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
               "
-              aria-label="Copy as markdown"
+              aria-label="マークダウンとしてコピー"
             >
               {isCopied ? (
                 <>
@@ -286,7 +286,7 @@ function MinutesViewerInner({
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span>Copied!</span>
+                  <span>コピーしました!</span>
                 </>
               ) : (
                 <>
@@ -304,7 +304,7 @@ function MinutesViewerInner({
                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>Copy</span>
+                  <span>コピー</span>
                 </>
               )}
             </button>
@@ -336,23 +336,23 @@ function MinutesViewerInner({
       <nav
         className="border-b border-lark-border"
         role="tablist"
-        aria-label="Minutes sections"
+        aria-label="議事録セクション"
       >
         <div className="flex gap-4 px-4">
           <TabButton
-            label="Topics"
+            label="トピック"
             count={minutes.topics.length}
             isActive={activeTab === 'topics'}
             onClick={() => setActiveTab('topics')}
           />
           <TabButton
-            label="Decisions"
+            label="決定事項"
             count={minutes.decisions.length}
             isActive={activeTab === 'decisions'}
             onClick={() => setActiveTab('decisions')}
           />
           <TabButton
-            label="Action Items"
+            label="アクションアイテム"
             count={minutes.actionItems.length}
             isActive={activeTab === 'actions'}
             onClick={() => setActiveTab('actions')}

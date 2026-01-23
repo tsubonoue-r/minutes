@@ -230,12 +230,12 @@ function ExportButtonInner({
           ${variantClasses}
           ${className}
         `}
-        aria-label="Export to Lark Docs"
+        aria-label="Lark Docsにエクスポート"
         aria-haspopup="dialog"
         aria-expanded={isDialogOpen}
       >
         <LarkDocsIcon className={iconSize} />
-        <span>Export to Lark</span>
+        <span>Larkにエクスポート</span>
       </button>
 
       <ExportDialog

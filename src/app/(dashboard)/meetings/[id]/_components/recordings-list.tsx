@@ -57,7 +57,7 @@ function formatDuration(seconds: number): string {
   const remainingSeconds = seconds % 60;
   if (minutes < 60) {
     if (remainingSeconds === 0) {
-      return `${minutes} min`;
+      return `${minutes}分`;
     }
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
@@ -88,10 +88,10 @@ function formatFileSize(bytes: number | undefined): string {
  */
 function formatDate(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('ja-JP', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -116,9 +116,9 @@ function getStatusVariant(
  */
 function getStatusLabel(status: RecordingStatus): string {
   const labels: Record<RecordingStatus, string> = {
-    ready: 'Ready',
-    processing: 'Processing',
-    failed: 'Failed',
+    ready: '準備完了',
+    processing: '処理中',
+    failed: '失敗',
   };
   return labels[status];
 }
@@ -163,7 +163,7 @@ function RecordingItem({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Recording
+              録画
             </p>
             <Badge variant={getStatusVariant(recording.status)}>
               {getStatusLabel(recording.status)}
@@ -219,7 +219,7 @@ function RecordingItem({
             target="_blank"
             rel="noopener noreferrer"
             className="btn-secondary text-sm"
-            aria-label="Watch recording"
+            aria-label="録画を再生"
           >
             <svg
               className="w-4 h-4 mr-1"
@@ -241,11 +241,11 @@ function RecordingItem({
                 d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Watch
+            再生
           </a>
         ) : (
           <span className="text-sm text-slate-400 dark:text-slate-500">
-            {recording.status === 'processing' ? 'Processing...' : 'Unavailable'}
+            {recording.status === 'processing' ? '処理中...' : '利用不可'}
           </span>
         )}
       </div>
@@ -299,10 +299,10 @@ function EmptyState(): JSX.Element {
         />
       </svg>
       <p className="mt-2 text-sm font-medium text-slate-900 dark:text-white">
-        No Recordings
+        録画なし
       </p>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-        This meeting does not have any recordings.
+        この会議には録画がありません。
       </p>
     </div>
   );
@@ -367,7 +367,7 @@ export function RecordingsList({
           id="recordings-heading"
           className="text-lg font-semibold text-slate-900 dark:text-white"
         >
-          Recordings
+          録画
           {!isLoading && error === null && recordings.length > 0 && (
             <span className="ml-2 text-sm font-normal text-slate-500 dark:text-slate-400">
               ({recordings.length})
@@ -386,7 +386,7 @@ export function RecordingsList({
         <div
           className="divide-y divide-slate-200 dark:divide-slate-700"
           role="list"
-          aria-label="Meeting recordings"
+          aria-label="会議の録画"
         >
           {recordings.map((recording) => (
             <RecordingItem

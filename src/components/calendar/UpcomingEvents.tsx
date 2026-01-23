@@ -126,10 +126,10 @@ function EmptyState(): JSX.Element {
         </svg>
       </div>
       <h3 className="text-lg font-medium text-lark-text mb-2">
-        No Upcoming Events
+        予定されているイベントはありません
       </h3>
       <p className="text-sm text-gray-500">
-        Your calendar is clear. Enjoy your free time!
+        カレンダーに予定はありません。ゆっくりお過ごしください。
       </p>
     </div>
   );
@@ -164,7 +164,7 @@ function ErrorState({
         </svg>
       </div>
       <h3 className="text-lg font-medium text-red-600 mb-2">
-        Failed to Load Events
+        イベントの読み込みに失敗しました
       </h3>
       <p className="text-sm text-gray-500 mb-4">{error.message}</p>
       {onRetry !== undefined && (
@@ -173,7 +173,7 @@ function ErrorState({
           onClick={onRetry}
           className="px-4 py-2 text-sm font-medium text-white bg-lark-primary rounded-lg hover:bg-lark-primary/90 transition-colors"
         >
-          Retry
+          再試行
         </button>
       )}
     </div>

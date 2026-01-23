@@ -52,7 +52,7 @@ function formatTime(isoString: string | undefined): string {
     return '--:--';
   }
   const date = new Date(isoString);
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleTimeString('ja-JP', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -66,14 +66,14 @@ function formatDuration(minutes: number | undefined): string {
     return '--';
   }
   if (minutes < 60) {
-    return `${minutes} min`;
+    return `${minutes}分`;
   }
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (remainingMinutes === 0) {
-    return `${hours}h`;
+    return `${hours}時間`;
   }
-  return `${hours}h ${remainingMinutes}m`;
+  return `${hours}時間${remainingMinutes}分`;
 }
 
 /**
@@ -102,7 +102,7 @@ function ParticipantRow({
             </p>
             {participant.isHost && (
               <Badge variant="default" className="text-xs">
-                Host
+                ホスト
               </Badge>
             )}
           </div>
@@ -115,15 +115,15 @@ function ParticipantRow({
       </div>
       <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
         <div className="hidden sm:block text-right">
-          <p className="font-medium">Joined</p>
+          <p className="font-medium">参加</p>
           <p>{formatTime(participant.joinTime)}</p>
         </div>
         <div className="hidden sm:block text-right">
-          <p className="font-medium">Left</p>
+          <p className="font-medium">退出</p>
           <p>{formatTime(participant.leaveTime)}</p>
         </div>
         <div className="text-right min-w-[60px]">
-          <p className="font-medium">Duration</p>
+          <p className="font-medium">時間</p>
           <p>{formatDuration(participant.duration)}</p>
         </div>
       </div>
@@ -181,7 +181,7 @@ function EmptyState(): JSX.Element {
         />
       </svg>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        No participants found for this meeting.
+        この会議の参加者は見つかりませんでした。
       </p>
     </div>
   );
@@ -246,7 +246,7 @@ export function ParticipantsList({
           id="participants-heading"
           className="text-lg font-semibold text-slate-900 dark:text-white"
         >
-          Participants
+          参加者
           {!isLoading && error === null && participants.length > 0 && (
             <span className="ml-2 text-sm font-normal text-slate-500 dark:text-slate-400">
               ({participants.length})
@@ -265,7 +265,7 @@ export function ParticipantsList({
         <div
           className="divide-y divide-slate-200 dark:divide-slate-700"
           role="list"
-          aria-label="Meeting participants"
+          aria-label="会議参加者"
         >
           {participants.map((participant) => (
             <ParticipantRow

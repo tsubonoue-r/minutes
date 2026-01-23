@@ -97,12 +97,12 @@ export function LoginButton({
       {isLoading ? (
         <>
           <LoadingSpinner />
-          <span>Connecting to Lark...</span>
+          <span>Larkに接続中...</span>
         </>
       ) : (
         <>
           <LarkLogo className="w-5 h-5" />
-          <span>Sign in with Lark</span>
+          <span>Larkでログイン</span>
         </>
       )}
     </button>

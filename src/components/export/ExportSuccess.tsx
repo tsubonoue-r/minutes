@@ -175,10 +175,10 @@ function ExportSuccessInner({
           <CheckCircleIcon className="w-10 h-10 text-green-500" />
         </div>
         <h3 className="text-lg font-semibold text-lark-text">
-          Export Successful!
+          エクスポート成功!
         </h3>
         <p className="text-sm text-gray-500 mt-1">
-          Your minutes have been exported to Lark Docs
+          議事録がLark Docsにエクスポートされました
         </p>
       </div>
 
@@ -210,10 +210,10 @@ function ExportSuccessInner({
             hover:bg-blue-600 transition-colors
             focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
           "
-          aria-label="Open document in new tab"
+          aria-label="ドキュメントを新しいタブで開く"
         >
           <ExternalLinkIcon className="w-4 h-4" />
-          <span className="text-sm font-medium">Open Document</span>
+          <span className="text-sm font-medium">ドキュメントを開く</span>
         </button>
 
         {/* Copy URL button */}
@@ -231,17 +231,17 @@ function ExportSuccessInner({
                 : 'border-lark-border text-gray-700 hover:bg-gray-50'
             }
           `}
-          aria-label={isCopied ? 'URL copied' : 'Copy URL to clipboard'}
+          aria-label={isCopied ? 'URLをコピーしました' : 'URLをクリップボードにコピー'}
         >
           {isCopied ? (
             <>
               <CheckIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">Copied!</span>
+              <span className="text-sm font-medium">コピーしました!</span>
             </>
           ) : (
             <>
               <CopyIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">Copy URL</span>
+              <span className="text-sm font-medium">URLをコピー</span>
             </>
           )}
         </button>
@@ -257,7 +257,7 @@ function ExportSuccessInner({
             focus:outline-none focus:underline
           "
         >
-          Close
+          閉じる
         </button>
       </div>
     </div>

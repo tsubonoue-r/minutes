@@ -11,21 +11,21 @@ import { LoginButton } from '@/components/auth/login-button';
  * Page metadata
  */
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to Minutes with your Lark account',
+  title: 'ログイン',
+  description: 'Larkアカウントでログイン',
 };
 
 /**
  * Error message mapping
  */
 const ERROR_MESSAGES: Record<string, string> = {
-  oauth_init_failed: 'Failed to start authentication. Please try again.',
-  oauth_denied: 'Authentication was denied. Please try again.',
-  invalid_callback: 'Invalid authentication response. Please try again.',
-  invalid_state: 'Security validation failed. Please try again.',
-  token_exchange_failed: 'Failed to complete authentication. Please try again.',
-  callback_failed: 'Authentication failed. Please try again.',
-  session_expired: 'Your session has expired. Please sign in again.',
+  oauth_init_failed: '認証の開始に失敗しました。もう一度お試しください。',
+  oauth_denied: '認証が拒否されました。もう一度お試しください。',
+  invalid_callback: '無効な認証レスポンスです。もう一度お試しください。',
+  invalid_state: 'セキュリティ検証に失敗しました。もう一度お試しください。',
+  token_exchange_failed: '認証の完了に失敗しました。もう一度お試しください。',
+  callback_failed: '認証に失敗しました。もう一度お試しください。',
+  session_expired: 'セッションの有効期限が切れました。再度ログインしてください。',
 };
 
 /**
@@ -49,7 +49,7 @@ export default async function LoginPage({
   const params = await searchParams;
   const error = params.error;
   const redirect = params.redirect;
-  const errorMessage = error !== undefined ? ERROR_MESSAGES[error] ?? 'An error occurred. Please try again.' : null;
+  const errorMessage = error !== undefined ? ERROR_MESSAGES[error] ?? 'エラーが発生しました。もう一度お試しください。' : null;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
@@ -68,7 +68,7 @@ export default async function LoginPage({
               <span className="text-3xl font-bold text-gradient">Minutes</span>
             </Link>
             <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Sign in to access your meeting notes
+              会議メモにアクセスするにはログインしてください
             </p>
           </div>
 
@@ -103,7 +103,7 @@ export default async function LoginPage({
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white dark:bg-slate-800 text-slate-500">
-                Secure authentication
+                安全な認証
               </span>
             </div>
           </div>
@@ -111,19 +111,18 @@ export default async function LoginPage({
           {/* Info */}
           <div className="text-center text-sm text-slate-500 dark:text-slate-400">
             <p className="mb-2">
-              By signing in, you agree to our{' '}
+              ログインすることで、
               <a href="#" className="link">
-                Terms of Service
-              </a>{' '}
-              and{' '}
-              <a href="#" className="link">
-                Privacy Policy
+                利用規約
               </a>
-              .
+              および
+              <a href="#" className="link">
+                プライバシーポリシー
+              </a>
+              に同意したものとみなされます。
             </p>
             <p>
-              We use Lark OAuth to securely authenticate you without storing
-              your password.
+              Lark OAuthを使用して、パスワードを保存せずに安全に認証します。
             </p>
           </div>
         </div>
@@ -131,7 +130,7 @@ export default async function LoginPage({
         {/* Back to home */}
         <p className="text-center mt-6 text-slate-500 dark:text-slate-400 text-sm">
           <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-            &larr; Back to home
+            &larr; ホームに戻る
           </Link>
         </p>
       </div>

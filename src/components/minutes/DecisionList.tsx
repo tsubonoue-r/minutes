@@ -271,7 +271,7 @@ export function DecisionList({
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-sm">No decisions recorded</p>
+        <p className="text-sm">決定事項はありません</p>
       </div>
     );
   }

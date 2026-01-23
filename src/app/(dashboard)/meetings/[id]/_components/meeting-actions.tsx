@@ -37,10 +37,10 @@ export interface MeetingActionsProps {
  */
 function getMinutesButtonText(status: MinutesStatus): string {
   const texts: Record<MinutesStatus, string> = {
-    not_created: 'Generate Minutes',
-    draft: 'Edit Draft',
-    pending_approval: 'Review Minutes',
-    approved: 'View Minutes',
+    not_created: '議事録を生成',
+    draft: '下書きを編集',
+    pending_approval: '議事録をレビュー',
+    approved: '議事録を表示',
   };
   return texts[status];
 }
@@ -91,7 +91,7 @@ export function MeetingActions({
   return (
     <div className="card">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Actions
+        アクション
       </h2>
 
       <div className="space-y-3">
@@ -125,7 +125,7 @@ export function MeetingActions({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Generating...
+              生成中...
             </>
           ) : (
             <>
@@ -154,7 +154,7 @@ export function MeetingActions({
             id="no-recording-hint"
             className="text-xs text-slate-500 dark:text-slate-400 text-center"
           >
-            Recording required to generate minutes
+            議事録の生成には録画が必要です
           </p>
         )}
 
@@ -216,7 +216,7 @@ export function MeetingActions({
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Back to Meetings
+          会議一覧に戻る
         </button>
       </div>
     </div>

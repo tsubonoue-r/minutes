@@ -346,13 +346,13 @@ function PageHeader({
             clipRule="evenodd"
           />
         </svg>
-        Action Items
+        アクションアイテム
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mt-1">
         {isLoading ? (
           <span className="inline-block h-4 w-32 bg-gray-200 rounded animate-pulse" />
         ) : (
-          `${total} items`
+          `${total}件`
         )}
       </p>
     </div>
@@ -382,8 +382,8 @@ function ResultsInfo({
 
   return (
     <div className="text-sm text-gray-500">
-      {total} items - showing {start}-{end}
-      {totalPages > 1 && ` (page ${currentPage} of ${totalPages})`}
+      {total}件中 {start}-{end}件を表示
+      {totalPages > 1 && ` (${totalPages}ページ中${currentPage}ページ目)`}
     </div>
   );
 }
@@ -420,7 +420,7 @@ function ErrorDisplay({
         onClick={onRetry}
         className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
       >
-        Retry
+        再試行
       </button>
     </div>
   );
@@ -542,7 +542,7 @@ export function ActionItemsPageClient({
       setData(newData);
       setStats(newStats);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
+      const message = err instanceof Error ? err.message : 'エラーが発生しました';
       setError(message);
     } finally {
       setIsLoading(false);
@@ -771,7 +771,7 @@ export function ActionItemsPageClient({
           items={items}
           isLoading={isLoading || isPending}
           onStatusChange={handleStatusChange}
-          emptyMessage="No action items found. Try adjusting your filters."
+          emptyMessage="アクションアイテムが見つかりません。フィルター条件を変更してください。"
         />
       )}
 

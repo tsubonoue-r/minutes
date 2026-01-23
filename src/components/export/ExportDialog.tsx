@@ -227,7 +227,7 @@ function ExportDialogInner({
               id="export-dialog-title"
               className="text-lg font-semibold text-lark-text"
             >
-              Export to Lark Docs
+              Lark Docsにエクスポート
             </h2>
           </div>
           <button
@@ -239,7 +239,7 @@ function ExportDialogInner({
               focus:outline-none focus:ring-2 focus:ring-lark-primary
               transition-colors
             "
-            aria-label="Close dialog"
+            aria-label="ダイアログを閉じる"
           >
             <CloseIcon className="w-5 h-5" />
           </button>
@@ -283,9 +283,9 @@ function ExportDialogInner({
                   />
                 </svg>
                 <div>
-                  <p className="font-medium">Export failed</p>
+                  <p className="font-medium">エクスポート失敗</p>
                   <p className="text-sm text-red-500 mt-1">
-                    {exportError ?? 'An unexpected error occurred. Please try again.'}
+                    {exportError ?? '予期しないエラーが発生しました。もう一度お試しください。'}
                   </p>
                 </div>
               </div>
@@ -300,7 +300,7 @@ function ExportDialogInner({
                   focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
                 "
               >
-                Close
+                閉じる
               </button>
             </div>
           )}
@@ -317,7 +317,7 @@ function ExportDialogInner({
                   htmlFor="export-title"
                   className="block text-sm font-medium text-lark-text mb-1.5"
                 >
-                  Document Title
+                  ドキュメントタイトル
                 </label>
                 <input
                   ref={titleInputRef}
@@ -357,7 +357,7 @@ function ExportDialogInner({
                       htmlFor="share-attendees"
                       className="text-sm text-lark-text"
                     >
-                      Share with meeting attendees ({attendees.length})
+                      会議参加者と共有 ({attendees.length}人)
                     </label>
                   </div>
 
@@ -368,7 +368,7 @@ function ExportDialogInner({
                         htmlFor="permission-select"
                         className="block text-sm text-gray-500 mb-1.5"
                       >
-                        Permission
+                        権限
                       </label>
                       <select
                         id="permission-select"
@@ -383,8 +383,8 @@ function ExportDialogInner({
                           transition-colors
                         "
                       >
-                        <option value="view">Can view</option>
-                        <option value="edit">Can edit</option>
+                        <option value="view">閲覧可能</option>
+                        <option value="edit">編集可能</option>
                       </select>
                     </div>
                   )}
@@ -392,7 +392,7 @@ function ExportDialogInner({
                   {/* Attendee list preview */}
                   {shareWithAttendees && attendees.length > 0 && (
                     <div className="ml-7 mt-2">
-                      <p className="text-xs text-gray-500 mb-2">Will be shared with:</p>
+                      <p className="text-xs text-gray-500 mb-2">共有先:</p>
                       <div className="flex flex-wrap gap-1.5">
                         {attendees.slice(0, 5).map((attendee) => (
                           <span
@@ -408,7 +408,7 @@ function ExportDialogInner({
                         ))}
                         {attendees.length > 5 && (
                           <span className="text-xs text-gray-500">
-                            +{attendees.length - 5} more
+                            他{attendees.length - 5}人
                           </span>
                         )}
                       </div>
@@ -430,7 +430,7 @@ function ExportDialogInner({
                     focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
                   "
                 >
-                  Cancel
+                  キャンセル
                 </button>
                 <button
                   type="submit"
@@ -467,10 +467,10 @@ function ExportDialogInner({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      <span>Exporting...</span>
+                      <span>エクスポート中...</span>
                     </>
                   ) : (
-                    <span>Export</span>
+                    <span>エクスポート</span>
                   )}
                 </button>
               </div>

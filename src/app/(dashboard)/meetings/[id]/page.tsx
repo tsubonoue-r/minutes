@@ -133,7 +133,7 @@ function Breadcrumb({
             href="/dashboard"
             className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
           >
-            Dashboard
+            ダッシュボード
           </a>
         </li>
         <li className="text-slate-400 dark:text-slate-500" aria-hidden="true">
@@ -144,7 +144,7 @@ function Breadcrumb({
             href="/meetings"
             className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
           >
-            Meetings
+            会議一覧
           </a>
         </li>
         <li className="text-slate-400 dark:text-slate-500" aria-hidden="true">
@@ -154,7 +154,7 @@ function Breadcrumb({
           className="text-slate-900 dark:text-white font-medium truncate max-w-[200px]"
           aria-current="page"
         >
-          {meetingTitle ?? 'Loading...'}
+          {meetingTitle ?? '読み込み中...'}
         </li>
       </ol>
     </nav>
@@ -188,7 +188,7 @@ function ErrorState({
         />
       </svg>
       <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
-        Error Loading Meeting
+        会議の読み込みエラー
       </h2>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
         {message}
@@ -199,14 +199,14 @@ function ErrorState({
           onClick={onRetry}
           className="btn-primary"
         >
-          Try Again
+          再試行
         </button>
         <button
           type="button"
           onClick={() => navigateTo('/meetings')}
           className="btn-secondary"
         >
-          Back to Meetings
+          会議一覧に戻る
         </button>
       </div>
     </div>
@@ -252,7 +252,7 @@ export default function MeetingDetailPage(): JSX.Element {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
+        error instanceof Error ? error.message : '予期しないエラーが発生しました';
       setState((prev) => ({
         ...prev,
         meetingError: message,
@@ -286,7 +286,7 @@ export default function MeetingDetailPage(): JSX.Element {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
+        error instanceof Error ? error.message : '予期しないエラーが発生しました';
       setState((prev) => ({
         ...prev,
         participantsError: message,
@@ -318,7 +318,7 @@ export default function MeetingDetailPage(): JSX.Element {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
+        error instanceof Error ? error.message : '予期しないエラーが発生しました';
       setState((prev) => ({
         ...prev,
         recordingsError: message,
@@ -416,7 +416,7 @@ export default function MeetingDetailPage(): JSX.Element {
         <div className="container-app py-8">
           <Breadcrumb />
           <ErrorState
-            message={state.meetingError ?? 'Meeting not found'}
+            message={state.meetingError ?? '会議が見つかりません'}
             onRetry={handleRetry}
           />
         </div>

@@ -76,7 +76,7 @@ function ErrorDisplay({
         </svg>
       </div>
       <p className="text-red-800 dark:text-red-200 font-medium mb-2">
-        Failed to load dashboard
+        ダッシュボードの読み込みに失敗しました
       </p>
       <p className="text-red-600 dark:text-red-400 text-sm mb-4">{message}</p>
       <button
@@ -84,7 +84,7 @@ function ErrorDisplay({
         onClick={onRetry}
         className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
       >
-        Retry
+        再試行
       </button>
     </div>
   );
@@ -209,16 +209,16 @@ export default function DashboardPage(): JSX.Element {
       };
 
       if (!response.ok) {
-        throw new Error(data.error?.message ?? 'Failed to fetch statistics');
+        throw new Error(data.error?.message ?? '統計情報の取得に失敗しました');
       }
 
       if (data.success && data.data !== undefined) {
         setStats(data.data);
       } else {
-        throw new Error(data.error?.message ?? 'Unknown error');
+        throw new Error(data.error?.message ?? '不明なエラー');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       setLoading(false);
     }
@@ -257,10 +257,10 @@ export default function DashboardPage(): JSX.Element {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Dashboard
+            ダッシュボード
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Analytics and statistics overview
+            分析と統計の概要
           </p>
         </div>
 
@@ -308,30 +308,30 @@ export default function DashboardPage(): JSX.Element {
           {/* Stats cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="Total Meetings"
+              title="会議数"
               value={stats.meetings.total}
               icon={<MeetingIcon />}
               changePercent={stats.meetings.changePercent}
-              description={`${stats.meetings.thisPeriod} this period`}
+              description={`今期 ${stats.meetings.thisPeriod}件`}
             />
             <StatsCard
-              title="Minutes Generated"
+              title="議事録生成数"
               value={stats.minutes.total}
               icon={<MinutesIcon />}
               changePercent={stats.minutes.changePercent}
-              description={`${stats.minutes.thisPeriod} this period`}
+              description={`今期 ${stats.minutes.thisPeriod}件`}
             />
             <StatsCard
-              title="Action Items"
+              title="アクションアイテム"
               value={stats.actionItems.total}
               icon={<ActionItemsIcon />}
-              description={`${stats.actionItems.completionRate}% completion rate`}
+              description={`完了率 ${stats.actionItems.completionRate}%`}
             />
             <StatsCard
-              title="Participants"
+              title="参加者"
               value={stats.participants.totalUnique}
               icon={<ParticipantsIcon />}
-              description={`Avg. ${stats.participants.avgPerMeeting} per meeting`}
+              description={`平均 ${stats.participants.avgPerMeeting}人/会議`}
             />
           </div>
 

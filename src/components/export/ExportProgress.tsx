@@ -28,10 +28,10 @@ interface StatusStep {
  * Status steps for export process
  */
 const STATUS_STEPS: readonly StatusStep[] = [
-  { key: 'uploading', label: 'Uploading...', icon: 'upload' },
-  { key: 'processing', label: 'Creating document...', icon: 'document' },
-  { key: 'setting_permissions', label: 'Setting permissions...', icon: 'permission' },
-  { key: 'completed', label: 'Completed!', icon: 'check' },
+  { key: 'uploading', label: 'アップロード中...', icon: 'upload' },
+  { key: 'processing', label: 'ドキュメント作成中...', icon: 'document' },
+  { key: 'setting_permissions', label: '権限設定中...', icon: 'permission' },
+  { key: 'completed', label: '完了!', icon: 'check' },
 ] as const;
 
 /**
@@ -150,7 +150,7 @@ function ProgressBar({
       aria-valuenow={clampedProgress}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label="Export progress"
+      aria-label="エクスポート進捗"
     >
       <div
         className="h-full bg-lark-primary transition-all duration-500 ease-out"

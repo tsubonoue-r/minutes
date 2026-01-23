@@ -51,10 +51,10 @@ export interface HeaderProps {
  * Default navigation links
  */
 const DEFAULT_NAV_LINKS: readonly NavLink[] = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/meetings', label: 'Meetings' },
-  { href: '/action-items', label: 'Action Items' },
-  { href: '/settings', label: 'Settings' },
+  { href: '/dashboard', label: 'ダッシュボード' },
+  { href: '/meetings', label: '会議' },
+  { href: '/action-items', label: 'アクションアイテム' },
+  { href: '/settings', label: '設定' },
 ] as const;
 
 /**
@@ -254,7 +254,7 @@ export function Header({
                   role="menuitem"
                   onClick={handleCloseDropdown}
                 >
-                  Settings
+                  設定
                 </a>
               </div>
 
@@ -275,7 +275,7 @@ export function Header({
                     "
                     role="menuitem"
                   >
-                    Logout
+                    ログアウト
                   </button>
                 </div>
               )}

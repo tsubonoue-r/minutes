@@ -12,8 +12,8 @@ import { TableSkeleton } from '@/components/ui';
  * Page metadata
  */
 export const metadata: Metadata = {
-  title: 'Meetings',
-  description: 'View and manage your meetings',
+  title: '会議一覧',
+  description: '会議の表示と管理',
 };
 
 /**

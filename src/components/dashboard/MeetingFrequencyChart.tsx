@@ -48,10 +48,10 @@ export function MeetingFrequencyChart({
       className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 ${className}`}
     >
       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-        Meeting Frequency
+        会議頻度
       </h3>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-        Number of meetings per {data.interval}
+        {data.interval === 'day' ? '日' : data.interval === 'week' ? '週' : '月'}ごとの会議数
       </p>
 
       {/* Chart container */}
@@ -86,8 +86,8 @@ export function MeetingFrequencyChart({
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                       <div className="bg-slate-900 dark:bg-slate-700 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                        <div className="font-medium">{point.count} meetings</div>
-                        <div className="text-slate-300">{point.totalDurationMinutes} min total</div>
+                        <div className="font-medium">{point.count}件の会議</div>
+                        <div className="text-slate-300">合計{point.totalDurationMinutes}分</div>
                       </div>
                     </div>
                   </div>
@@ -117,7 +117,7 @@ export function MeetingFrequencyChart({
       <div className="mt-4 flex items-center justify-center gap-4 text-sm text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-blue-500 rounded" />
-          <span>Meetings</span>
+          <span>会議</span>
         </div>
       </div>
     </div>
