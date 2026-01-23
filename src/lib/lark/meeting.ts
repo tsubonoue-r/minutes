@@ -10,7 +10,6 @@ import {
   type LarkMeetingListData,
   type LarkMeetingParticipant,
   type LarkMeetingRecording,
-  type LarkMeetingStatus,
   type LarkParticipantListData,
   type LarkRecordingListData,
   larkMeetingListResponseSchema,
@@ -78,80 +77,86 @@ export class MeetingApiError extends Error {
 // =============================================================================
 
 /**
- * Map Lark meeting status to application meeting status
+ * Parse Lark formatted datetime string to Date
+ * Format: "2025.01.24 15:31:06 (GMT+08:00)"
  */
-function mapLarkMeetingStatus(status: LarkMeetingStatus): MeetingStatus {
-  switch (status) {
-    case 'not_started':
-      return 'scheduled';
-    case 'in_progress':
-      return 'in_progress';
-    case 'ended':
-      return 'ended';
+function parseLarkDateTime(dateStr: string): Date {
+  const match = dateStr.match(/^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+\(GMT([+-]\d{2}):(\d{2})\)$/);
+  if (match) {
+    const [, year, month, day, hour, minute, second, tzHour, tzMinute] = match;
+    const isoStr = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzHour}:${tzMinute}`;
+    const parsed = new Date(isoStr);
+    if (!isNaN(parsed.getTime())) return parsed;
   }
+  const fallback = new Date(dateStr);
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
 }
 
 /**
- * Calculate duration in minutes from start and end times
- * @param startTime - Start time as Unix timestamp string (seconds)
- * @param endTime - End time as Unix timestamp string (seconds)
- * @returns Duration in minutes
+ * Parse duration string to minutes ("2:02:07" → 122)
  */
-export function calculateDuration(startTime: string, endTime: string): number {
-  const start = parseInt(startTime, 10);
-  const end = parseInt(endTime, 10);
-  const durationSeconds = end - start;
-  return Math.max(0, Math.round(durationSeconds / 60));
+export function calculateDuration(duration: string): number {
+  const parts = duration.split(':').map(Number);
+  if (parts.length === 3) {
+    const [h, m, s] = parts as [number, number, number];
+    return h * 60 + m + Math.round(s / 60);
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts as [number, number];
+    return m + Math.round(s / 60);
+  }
+  return 0;
 }
 
 /**
- * Convert Unix timestamp string to Date
+ * Convert Unix timestamp string to Date (used by participant/recording transforms)
  */
 function timestampToDate(timestamp: string): Date {
   return new Date(parseInt(timestamp, 10) * 1000);
 }
 
 /**
- * Transform Lark meeting user to application MeetingUser
- */
-function transformLarkMeetingUser(user: {
-  readonly user_id: string;
-  readonly user_name: string;
-  readonly avatar_url?: string | undefined;
-}): MeetingUser {
-  return {
-    id: user.user_id,
-    name: user.user_name,
-    avatarUrl: user.avatar_url,
-  };
-}
-
-/**
  * Transform Lark meeting to application Meeting format
- * @param larkMeeting - Meeting data from Lark API
+ * @param larkMeeting - Meeting data from Lark API (meeting_list endpoint)
  * @returns Transformed Meeting object for application use
  */
 export function transformLarkMeeting(larkMeeting: LarkMeeting): Meeting {
-  const startTime = timestampToDate(larkMeeting.start_time);
-  const endTime = timestampToDate(larkMeeting.end_time);
-  const durationMinutes = calculateDuration(larkMeeting.start_time, larkMeeting.end_time);
+  const startTime = parseLarkDateTime(larkMeeting.meeting_start_time);
+  const endTime = parseLarkDateTime(larkMeeting.meeting_end_time);
+  const durationMinutes = calculateDuration(larkMeeting.meeting_duration);
   const now = new Date();
+
+  // Determine status from times
+  let status: MeetingStatus;
+  if (endTime < now) {
+    status = 'ended';
+  } else if (startTime <= now) {
+    status = 'in_progress';
+  } else {
+    status = 'scheduled';
+  }
+
+  const host: MeetingUser = {
+    id: larkMeeting.user_id ?? 'unknown',
+    name: larkMeeting.organizer,
+    avatarUrl: undefined,
+  };
 
   return {
     id: larkMeeting.meeting_id,
-    title: larkMeeting.topic,
-    meetingNo: larkMeeting.meeting_no,
+    title: larkMeeting.meeting_topic,
+    meetingNo: larkMeeting.meeting_id,
     startTime,
     endTime,
     durationMinutes,
-    status: mapLarkMeetingStatus(larkMeeting.status),
-    type: 'regular', // Default to regular, can be enhanced later
-    host: transformLarkMeetingUser(larkMeeting.host_user),
-    participantCount: larkMeeting.participant_count,
-    hasRecording: larkMeeting.record_url !== undefined,
-    recordingUrl: larkMeeting.record_url,
-    minutesStatus: 'not_created', // Default, can be enhanced with minutes API
-    createdAt: startTime, // Use start time as proxy for creation
+    status,
+    type: 'regular',
+    host,
+    participantCount: parseInt(larkMeeting.number_of_participants, 10) || 0,
+    hasRecording: larkMeeting.recording,
+    recordingUrl: undefined,
+    minutesStatus: 'not_created',
+    createdAt: startTime,
     updatedAt: now,
   };
 }

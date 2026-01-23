@@ -60,10 +60,10 @@ export const handlers = [
   // =========================================================================
 
   /**
-   * GET /open-apis/vc/v1/meetings
+   * GET /open-apis/vc/v1/meeting_list
    * List meetings with pagination
    */
-  http.get(`${LARK_BASE_URL}/open-apis/vc/v1/meetings`, ({ request }) => {
+  http.get(`${LARK_BASE_URL}/open-apis/vc/v1/meeting_list`, ({ request }) => {
     const url = new URL(request.url);
     const pageToken = url.searchParams.get('page_token');
     const pageSize = url.searchParams.get('page_size');
@@ -249,7 +249,7 @@ export const errorHandlers = {
    * Handler that simulates a network timeout
    */
   networkTimeout: http.get(
-    `${LARK_BASE_URL}/open-apis/vc/v1/meetings`,
+    `${LARK_BASE_URL}/open-apis/vc/v1/meeting_list`,
     async () => {
       // Simulate a delay that exceeds typical timeout
       await new Promise((resolve) => setTimeout(resolve, 35000));
@@ -261,7 +261,7 @@ export const errorHandlers = {
    * Handler that simulates a 500 Internal Server Error
    */
   serverError: http.get(
-    `${LARK_BASE_URL}/open-apis/vc/v1/meetings`,
+    `${LARK_BASE_URL}/open-apis/vc/v1/meeting_list`,
     () => {
       return HttpResponse.json(
         {
@@ -278,7 +278,7 @@ export const errorHandlers = {
    * Handler that simulates an expired token
    */
   expiredToken: http.get(
-    `${LARK_BASE_URL}/open-apis/vc/v1/meetings`,
+    `${LARK_BASE_URL}/open-apis/vc/v1/meeting_list`,
     () => {
       return HttpResponse.json(
         {
@@ -295,7 +295,7 @@ export const errorHandlers = {
    * Handler that simulates rate limiting
    */
   rateLimited: http.get(
-    `${LARK_BASE_URL}/open-apis/vc/v1/meetings`,
+    `${LARK_BASE_URL}/open-apis/vc/v1/meeting_list`,
     () => {
       return HttpResponse.json(
         {

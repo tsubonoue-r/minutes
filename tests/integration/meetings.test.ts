@@ -276,7 +276,7 @@ describe('GET /api/meetings', () => {
       // Using server.use with a one-time handler
       server.use(
         http.get(
-          'https://open.larksuite.com/open-apis/vc/v1/meetings',
+          'https://open.larksuite.com/open-apis/vc/v1/meeting_list',
           () => {
             return HttpResponse.json({
               code: 99991400,

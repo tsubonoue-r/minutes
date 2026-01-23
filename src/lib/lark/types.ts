@@ -190,33 +190,54 @@ export type LarkMeetingUser = z.infer<typeof larkMeetingUserSchema>;
 
 /**
  * Meeting status enum
+ * Lark API may return string or numeric values: 1=not_started, 2=in_progress, 3=ended
  */
-export const larkMeetingStatusSchema = z.enum(['not_started', 'in_progress', 'ended']);
+export const larkMeetingStatusSchema = z.union([
+  z.enum(['not_started', 'in_progress', 'ended']),
+  z.number().transform((n): 'not_started' | 'in_progress' | 'ended' => {
+    const map: Record<number, 'not_started' | 'in_progress' | 'ended'> = {
+      1: 'not_started',
+      2: 'in_progress',
+      3: 'ended',
+    };
+    return map[n] ?? 'ended';
+  }),
+]);
 
-export type LarkMeetingStatus = z.infer<typeof larkMeetingStatusSchema>;
+export type LarkMeetingStatus = 'not_started' | 'in_progress' | 'ended';
 
 /**
- * Meeting details
+ * Meeting details from /open-apis/vc/v1/meeting_list
  */
 export const larkMeetingSchema = z.object({
   /** Meeting ID */
   meeting_id: z.string(),
   /** Meeting topic/title */
-  topic: z.string(),
-  /** Meeting number */
-  meeting_no: z.string(),
-  /** Start time (Unix timestamp in seconds) */
-  start_time: z.string(),
-  /** End time (Unix timestamp in seconds) */
-  end_time: z.string(),
-  /** Host user information */
-  host_user: larkMeetingUserSchema,
-  /** Meeting status */
-  status: larkMeetingStatusSchema,
-  /** Number of participants */
-  participant_count: z.number(),
-  /** Recording URL (if available) */
-  record_url: z.string().optional(),
+  meeting_topic: z.string(),
+  /** Start time (formatted string: "2025.01.24 15:31:06 (GMT+08:00)") */
+  meeting_start_time: z.string(),
+  /** End time (formatted string) */
+  meeting_end_time: z.string(),
+  /** Meeting duration (e.g. "2:02:07") */
+  meeting_duration: z.string(),
+  /** Organizer name */
+  organizer: z.string(),
+  /** Number of participants (string) */
+  number_of_participants: z.string(),
+  /** Has recording */
+  recording: z.boolean(),
+  /** Audio enabled */
+  audio: z.boolean().optional(),
+  /** Video enabled */
+  video: z.boolean().optional(),
+  /** Screen sharing */
+  sharing: z.boolean().optional(),
+  /** Department */
+  department: z.string().optional(),
+  /** User ID */
+  user_id: z.string().optional(),
+  /** Email (may be masked) */
+  email: z.string().optional(),
 });
 
 export type LarkMeeting = z.infer<typeof larkMeetingSchema>;
@@ -348,7 +369,7 @@ export type LarkRecordingListResponse = z.infer<typeof larkRecordingListResponse
  */
 export const LarkVCApiEndpoints = {
   /** List meetings */
-  MEETING_LIST: '/open-apis/vc/v1/meetings',
+  MEETING_LIST: '/open-apis/vc/v1/meeting_list',
   /** Get meeting details */
   MEETING_GET: '/open-apis/vc/v1/meetings/:meeting_id',
   /** List meeting participants */

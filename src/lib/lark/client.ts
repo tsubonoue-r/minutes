@@ -121,10 +121,18 @@ export class LarkClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        let errorBody: unknown;
+        try {
+          errorBody = await response.json();
+        } catch {
+          // ignore parse errors
+        }
+        console.error(`[LarkClient] API Error ${response.status} at ${endpoint}:`, errorBody);
         throw new LarkClientError(
           `HTTP ${response.status}: ${response.statusText}`,
           response.status,
-          endpoint
+          endpoint,
+          errorBody
         );
       }
 

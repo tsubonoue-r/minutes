@@ -23,18 +23,19 @@ import type {
 // Mock data factories
 const createMockLarkMeeting = (overrides: Partial<LarkMeeting> = {}): LarkMeeting => ({
   meeting_id: 'meeting_001',
-  topic: 'Weekly Team Standup',
-  meeting_no: '123456789',
-  start_time: '1700000000', // Unix timestamp
-  end_time: '1700003600', // +1 hour
-  host_user: {
-    user_id: 'user_001',
-    user_name: 'John Doe',
-    avatar_url: 'https://example.com/avatar.jpg',
-  },
-  status: 'ended',
-  participant_count: 5,
-  record_url: 'https://example.com/recording',
+  meeting_topic: 'Weekly Team Standup',
+  meeting_start_time: '2023.11.14 00:00:00 (GMT+00:00)', // Past date = ended
+  meeting_end_time: '2023.11.14 01:00:00 (GMT+00:00)', // +1 hour
+  meeting_duration: '1:00:00',
+  organizer: 'John Doe',
+  number_of_participants: '5',
+  recording: true,
+  audio: true,
+  video: true,
+  sharing: false,
+  user_id: 'user_001',
+  department: 'Engineering',
+  email: 'john@example.com',
   ...overrides,
 });
 
@@ -63,22 +64,20 @@ const createMockLarkRecording = (
 });
 
 describe('calculateDuration', () => {
-  it('should calculate duration in minutes correctly', () => {
-    // 1 hour = 3600 seconds = 60 minutes
-    expect(calculateDuration('1700000000', '1700003600')).toBe(60);
+  it('should calculate duration in minutes from duration string', () => {
+    expect(calculateDuration('1:00:00')).toBe(60); // 1 hour
   });
 
-  it('should handle partial minutes by rounding', () => {
-    // 90 seconds = 1.5 minutes, rounds to 2
-    expect(calculateDuration('1700000000', '1700000090')).toBe(2);
+  it('should handle hours and minutes', () => {
+    expect(calculateDuration('2:30:00')).toBe(150); // 2h30m
   });
 
-  it('should return 0 for same start and end time', () => {
-    expect(calculateDuration('1700000000', '1700000000')).toBe(0);
+  it('should round seconds to nearest minute', () => {
+    expect(calculateDuration('0:01:30')).toBe(2); // 1m30s rounds to 2
   });
 
-  it('should return 0 for negative duration', () => {
-    expect(calculateDuration('1700003600', '1700000000')).toBe(0);
+  it('should return 0 for zero duration', () => {
+    expect(calculateDuration('0:00:00')).toBe(0);
   });
 });
 
@@ -89,41 +88,53 @@ describe('transformLarkMeeting', () => {
 
     expect(meeting.id).toBe('meeting_001');
     expect(meeting.title).toBe('Weekly Team Standup');
-    expect(meeting.meetingNo).toBe('123456789');
-    expect(meeting.status).toBe('ended');
+    expect(meeting.meetingNo).toBe('meeting_001');
+    expect(meeting.status).toBe('ended'); // Past date
     expect(meeting.type).toBe('regular');
     expect(meeting.durationMinutes).toBe(60);
     expect(meeting.host.id).toBe('user_001');
     expect(meeting.host.name).toBe('John Doe');
-    expect(meeting.host.avatarUrl).toBe('https://example.com/avatar.jpg');
     expect(meeting.participantCount).toBe(5);
     expect(meeting.hasRecording).toBe(true);
-    expect(meeting.recordingUrl).toBe('https://example.com/recording');
     expect(meeting.minutesStatus).toBe('not_created');
   });
 
-  it('should map Lark status to app status correctly', () => {
-    expect(transformLarkMeeting(createMockLarkMeeting({ status: 'not_started' })).status).toBe('scheduled');
-    expect(transformLarkMeeting(createMockLarkMeeting({ status: 'in_progress' })).status).toBe('in_progress');
-    expect(transformLarkMeeting(createMockLarkMeeting({ status: 'ended' })).status).toBe('ended');
+  it('should determine status from dates', () => {
+    // Past meeting = ended
+    const ended = transformLarkMeeting(createMockLarkMeeting({
+      meeting_start_time: '2020.01.01 00:00:00 (GMT+00:00)',
+      meeting_end_time: '2020.01.01 01:00:00 (GMT+00:00)',
+    }));
+    expect(ended.status).toBe('ended');
+
+    // Future meeting = scheduled
+    const scheduled = transformLarkMeeting(createMockLarkMeeting({
+      meeting_start_time: '2099.01.01 00:00:00 (GMT+00:00)',
+      meeting_end_time: '2099.01.01 01:00:00 (GMT+00:00)',
+    }));
+    expect(scheduled.status).toBe('scheduled');
   });
 
-  it('should handle missing recording URL', () => {
-    const larkMeeting = createMockLarkMeeting({ record_url: undefined });
-    const meeting = transformLarkMeeting(larkMeeting);
+  it('should handle recording flag', () => {
+    const withRecording = transformLarkMeeting(createMockLarkMeeting({ recording: true }));
+    expect(withRecording.hasRecording).toBe(true);
 
-    expect(meeting.hasRecording).toBe(false);
-    expect(meeting.recordingUrl).toBeUndefined();
+    const withoutRecording = transformLarkMeeting(createMockLarkMeeting({ recording: false }));
+    expect(withoutRecording.hasRecording).toBe(false);
   });
 
-  it('should convert Unix timestamps to Date objects', () => {
-    const larkMeeting = createMockLarkMeeting();
+  it('should parse Lark datetime strings to Date objects', () => {
+    const larkMeeting = createMockLarkMeeting({
+      meeting_start_time: '2025.01.24 15:31:06 (GMT+09:00)',
+      meeting_end_time: '2025.01.24 17:33:13 (GMT+09:00)',
+    });
     const meeting = transformLarkMeeting(larkMeeting);
 
     expect(meeting.startTime).toBeInstanceOf(Date);
     expect(meeting.endTime).toBeInstanceOf(Date);
-    expect(meeting.startTime.getTime()).toBe(1700000000 * 1000);
-    expect(meeting.endTime.getTime()).toBe(1700003600 * 1000);
+    expect(meeting.startTime.getFullYear()).toBe(2025);
+    expect(meeting.startTime.getMonth()).toBe(0); // January
+    expect(meeting.startTime.getDate()).toBe(24);
   });
 });
 

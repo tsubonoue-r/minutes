@@ -7,6 +7,8 @@ import { cookies } from 'next/headers';
 import { getIronSession, type SessionOptions } from 'iron-session';
 import type { SessionData, LarkUser } from '@/types/auth';
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
+import { createLarkClient } from '@/lib/lark/client';
+import { getAppAccessToken } from '@/lib/lark/oauth';
 
 /**
  * Session cookie name
@@ -62,20 +64,34 @@ function isSimpleAuthMode(): boolean {
 }
 
 /**
- * Mock session for simple auth mode
+ * Mock user for simple auth mode
  */
-const MOCK_SESSION: SessionData = {
-  isAuthenticated: true,
-  user: {
-    openId: 'api-user-001',
-    unionId: 'api-union-001',
-    name: 'API User',
-    email: 'api@example.com',
-    avatarUrl: '',
-    tenantKey: 'api-tenant-001',
-  },
-  accessToken: 'mock-access-token',
+const MOCK_USER: LarkUser = {
+  openId: 'api-user-001',
+  unionId: 'api-union-001',
+  name: 'API User',
+  email: 'api@example.com',
+  avatarUrl: '',
+  tenantKey: 'api-tenant-001',
 };
+
+/**
+ * Get mock session with real app access token for DEV_SKIP_AUTH mode
+ */
+async function getMockSession(): Promise<SessionData> {
+  let accessToken = 'mock-access-token';
+  try {
+    const client = createLarkClient();
+    accessToken = await getAppAccessToken(client);
+  } catch (error) {
+    console.warn('[getMockSession] Failed to get app access token, using mock:', error);
+  }
+  return {
+    isAuthenticated: true,
+    user: MOCK_USER,
+    accessToken,
+  };
+}
 
 /**
  * Get the current session from server component
@@ -83,9 +99,9 @@ const MOCK_SESSION: SessionData = {
  * @returns Session data or null if not authenticated
  */
 export async function getSession(): Promise<SessionData | null> {
-  // Simple auth mode: return mock session
+  // Simple auth mode: get real app access token from Lark
   if (isSimpleAuthMode()) {
-    return MOCK_SESSION;
+    return getMockSession();
   }
 
   try {

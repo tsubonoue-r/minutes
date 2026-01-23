@@ -99,6 +99,10 @@ export const LarkScopes = {
   DOCS_WRITE: 'docs:doc',
   /** Read minutes */
   MINUTES_READ: 'minutes:minutes:readonly',
+  /** Read VC meetings */
+  VC_MEETING_READ: 'vc:meeting:readonly',
+  /** Read VC meeting recordings */
+  VC_RECORD_READ: 'vc:record:readonly',
 } as const;
 
 export type LarkScope = (typeof LarkScopes)[keyof typeof LarkScopes];

@@ -29,8 +29,13 @@ export async function GET(request: Request): Promise<Response> {
     const client = createLarkClient();
     const config = client.getConfig();
 
-    // Request basic user info and minutes access
-    const scope = [LarkScopes.USER_INFO, LarkScopes.MINUTES_READ].join(' ');
+    // Request user info, minutes, and VC meeting access
+    const scope = [
+      LarkScopes.USER_INFO,
+      LarkScopes.MINUTES_READ,
+      LarkScopes.VC_MEETING_READ,
+      LarkScopes.VC_RECORD_READ,
+    ].join(' ');
 
     const authorizationUrl = buildAuthorizationUrl(config, state, scope);
 

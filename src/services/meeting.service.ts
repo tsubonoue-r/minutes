@@ -7,7 +7,6 @@ import { LarkClient, LarkClientError } from '@/lib/lark/client';
 import type {
   LarkMeetingListData,
   LarkMeeting,
-  LarkMeetingStatus,
 } from '@/lib/lark/types';
 import { LarkVCApiEndpoints } from '@/lib/lark/types';
 import type {
@@ -51,32 +50,8 @@ export interface GetMeetingsOptions {
   readonly sort: MeetingSort;
 }
 
-/**
- * Map Lark meeting status to internal status
- */
-function mapLarkStatusToMeetingStatus(status: LarkMeetingStatus): MeetingStatus {
-  const statusMap: Record<LarkMeetingStatus, MeetingStatus> = {
-    not_started: 'scheduled',
-    in_progress: 'in_progress',
-    ended: 'ended',
-  };
-  return statusMap[status];
-}
-
-/**
- * Map internal status to Lark status for filtering
- */
-function mapMeetingStatusToLarkStatus(
-  status: MeetingStatus
-): LarkMeetingStatus | undefined {
-  const statusMap: Partial<Record<MeetingStatus, LarkMeetingStatus>> = {
-    scheduled: 'not_started',
-    in_progress: 'in_progress',
-    ended: 'ended',
-    // 'cancelled' has no Lark equivalent, return undefined
-  };
-  return statusMap[status];
-}
+// Status mapping removed - meeting_list endpoint doesn't use status filter
+// Status is now determined from meeting start/end times in transformLarkMeeting
 
 /**
  * Infer meeting type from topic/title
@@ -89,45 +64,80 @@ function inferMeetingType(_topic: string): MeetingType {
 }
 
 /**
- * Convert Unix timestamp string (seconds) to Date
+ * Parse Lark formatted datetime string to Date
+ * Format: "2025.01.24 15:31:06 (GMT+08:00)"
  */
-function unixToDate(timestamp: string): Date {
-  return new Date(parseInt(timestamp, 10) * 1000);
+function parseLarkDateTime(dateStr: string): Date {
+  // Extract date/time part before timezone
+  const match = dateStr.match(/^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+\(GMT([+-]\d{2}):(\d{2})\)$/);
+  if (match) {
+    const [, year, month, day, hour, minute, second, tzHour, tzMinute] = match;
+    const isoStr = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzHour}:${tzMinute}`;
+    const parsed = new Date(isoStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  // Fallback: try direct parsing
+  const fallback = new Date(dateStr);
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
+}
+
+/**
+ * Parse duration string to minutes
+ * Format: "2:02:07" or "00:06:52"
+ */
+function parseDurationToMinutes(duration: string): number {
+  const parts = duration.split(':').map(Number);
+  if (parts.length === 3) {
+    const [h, m, s] = parts as [number, number, number];
+    return h * 60 + m + Math.round(s / 60);
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts as [number, number];
+    return m + Math.round(s / 60);
+  }
+  return 0;
 }
 
 /**
  * Convert Lark meeting to internal Meeting format
  */
 function transformLarkMeeting(larkMeeting: LarkMeeting): Meeting {
-  const startTime = unixToDate(larkMeeting.start_time);
-  const endTime = unixToDate(larkMeeting.end_time);
-  const durationMinutes = Math.round(
-    (endTime.getTime() - startTime.getTime()) / (1000 * 60)
-  );
+  const startTime = parseLarkDateTime(larkMeeting.meeting_start_time);
+  const endTime = parseLarkDateTime(larkMeeting.meeting_end_time);
+  const durationMinutes = parseDurationToMinutes(larkMeeting.meeting_duration);
 
   const host: MeetingUser = {
-    id: larkMeeting.host_user.user_id,
-    name: larkMeeting.host_user.user_name,
-    avatarUrl: larkMeeting.host_user.avatar_url,
+    id: larkMeeting.user_id ?? 'unknown',
+    name: larkMeeting.organizer,
+    avatarUrl: undefined,
   };
 
+  // Determine status from end time
   const now = new Date();
+  let status: MeetingStatus;
+  if (endTime < now) {
+    status = 'ended';
+  } else if (startTime <= now) {
+    status = 'in_progress';
+  } else {
+    status = 'scheduled';
+  }
 
   return {
     id: larkMeeting.meeting_id,
-    title: larkMeeting.topic,
-    meetingNo: larkMeeting.meeting_no,
+    title: larkMeeting.meeting_topic,
+    meetingNo: larkMeeting.meeting_id,
     startTime,
     endTime,
     durationMinutes,
-    status: mapLarkStatusToMeetingStatus(larkMeeting.status),
-    type: inferMeetingType(larkMeeting.topic),
+    status,
+    type: inferMeetingType(larkMeeting.meeting_topic),
     host,
-    participantCount: larkMeeting.participant_count,
-    hasRecording: larkMeeting.record_url !== undefined,
-    recordingUrl: larkMeeting.record_url,
+    participantCount: parseInt(larkMeeting.number_of_participants, 10) || 0,
+    hasRecording: larkMeeting.recording,
+    recordingUrl: undefined,
     minutesStatus: 'not_created' as MinutesStatus,
-    createdAt: startTime, // Using start time as creation time
+    createdAt: startTime,
     updatedAt: now,
   };
 }
@@ -153,30 +163,23 @@ export class MeetingService {
 
     try {
       // Build query parameters
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
       const params: Record<string, string> = {
         page_size: String(limit),
+        // meeting_list endpoint requires start_time and end_time (Unix seconds)
+        start_time: String(
+          Math.floor(
+            (filters.startDate ?? thirtyDaysAgo).getTime() / 1000
+          )
+        ),
+        end_time: String(
+          Math.floor(
+            (filters.endDate ?? now).getTime() / 1000
+          )
+        ),
       };
-
-      // Add date filters if provided
-      if (filters.startDate !== undefined) {
-        params['start_time'] = String(
-          Math.floor(filters.startDate.getTime() / 1000)
-        );
-      }
-
-      if (filters.endDate !== undefined) {
-        params['end_time'] = String(
-          Math.floor(filters.endDate.getTime() / 1000)
-        );
-      }
-
-      // Add status filter
-      if (filters.status !== undefined) {
-        const larkStatus = mapMeetingStatusToLarkStatus(filters.status);
-        if (larkStatus !== undefined) {
-          params['status'] = larkStatus;
-        }
-      }
 
       // Fetch from Lark API
       const response = await this.client.authenticatedRequest<LarkMeetingListData>(
