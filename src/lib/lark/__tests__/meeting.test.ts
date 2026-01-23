@@ -395,13 +395,16 @@ describe('MeetingService', () => {
   });
 
   describe('getMeetingById', () => {
-    it('should fetch and transform single meeting', async () => {
+    it('should fetch from meeting_list and return matching meeting', async () => {
       const mockResponse = {
         ok: true,
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: { meeting: createMockLarkMeeting() },
+          data: {
+            has_more: false,
+            meeting_list: [createMockLarkMeeting()],
+          },
         }),
       };
       vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
@@ -412,7 +415,7 @@ describe('MeetingService', () => {
       expect(meeting.title).toBe('Weekly Team Standup');
     });
 
-    it('should throw MeetingNotFoundError when meeting not found', async () => {
+    it('should throw MeetingNotFoundError when data is undefined', async () => {
       const mockResponse = {
         ok: true,
         json: vi.fn().mockResolvedValue({
@@ -427,36 +430,47 @@ describe('MeetingService', () => {
       );
     });
 
-    it('should throw MeetingNotFoundError on specific Lark error codes', async () => {
-      const mockResponse = {
-        ok: true,
-        json: vi.fn().mockResolvedValue({
-          code: 99991663,
-          msg: 'Meeting not found',
-        }),
-      };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
-
-      await expect(service.getMeetingById(accessToken, 'invalid_id')).rejects.toThrow(
-        MeetingNotFoundError
-      );
-    });
-
-    it('should replace meeting ID in endpoint URL', async () => {
+    it('should throw MeetingNotFoundError when meeting not in list', async () => {
       const mockResponse = {
         ok: true,
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: { meeting: createMockLarkMeeting() },
+          data: {
+            has_more: false,
+            meeting_list: [createMockLarkMeeting()],
+          },
         }),
       };
       vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
 
-      await service.getMeetingById(accessToken, 'meeting_xyz');
+      await expect(service.getMeetingById(accessToken, 'nonexistent_id')).rejects.toThrow(
+        MeetingNotFoundError
+      );
+    });
+
+    it('should use meeting_list endpoint with meeting_no param', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          code: 0,
+          msg: 'success',
+          data: {
+            has_more: false,
+            meeting_list: [createMockLarkMeeting()],
+          },
+        }),
+      };
+      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+
+      await service.getMeetingById(accessToken, 'meeting_001');
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/meetings/meeting_xyz'),
+        expect.stringContaining('/meeting_list'),
+        expect.any(Object)
+      );
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('meeting_no=meeting_001'),
         expect.any(Object)
       );
     });
@@ -464,13 +478,16 @@ describe('MeetingService', () => {
 
   describe('getParticipants', () => {
     it('should fetch and transform participants', async () => {
-      // Mock for getMeetingById (to get host info)
+      // Mock for getMeetingById (uses meeting_list to get host info)
       const meetingResponse = {
         ok: true,
         json: vi.fn().mockResolvedValue({
           code: 0,
           msg: 'success',
-          data: { meeting: createMockLarkMeeting() },
+          data: {
+            has_more: false,
+            meeting_list: [createMockLarkMeeting()],
+          },
         }),
       };
 

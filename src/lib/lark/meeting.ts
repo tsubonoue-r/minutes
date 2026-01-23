@@ -7,13 +7,11 @@ import type { LarkClient } from './client';
 import { LarkClientError } from './client';
 import {
   type LarkMeeting,
-  type LarkMeetingDetailData,
   type LarkMeetingListData,
   type LarkMeetingParticipant,
   type LarkMeetingRecording,
   type LarkParticipantListData,
   type LarkRecordingListData,
-  larkMeetingDetailDataSchema,
   larkMeetingListResponseSchema,
   larkParticipantListResponseSchema,
   larkRecordingListResponseSchema,
@@ -352,27 +350,44 @@ export class MeetingService {
    */
   async getMeetingById(accessToken: string, meetingId: string): Promise<Meeting> {
     try {
-      const endpoint = LarkVCApiEndpoints.MEETING_GET.replace(':meeting_id', meetingId);
+      // The meeting detail endpoint (/meetings/:id) is not available for app access tokens.
+      // Fetch from meeting_list and find by ID instead.
+      const now = new Date();
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
-      const response = await this.client.authenticatedRequest<LarkMeetingDetailData>(
-        endpoint,
-        accessToken
+      const params: Record<string, string> = {
+        start_time: Math.floor(ninetyDaysAgo.getTime() / 1000).toString(),
+        end_time: Math.floor(now.getTime() / 1000).toString(),
+        page_size: '100',
+        meeting_no: meetingId,
+      };
+
+      const response = await this.client.authenticatedRequest<LarkMeetingListData>(
+        LarkVCApiEndpoints.MEETING_LIST,
+        accessToken,
+        { params }
       );
 
-      if (response.data === undefined) {
+      const validated = larkMeetingListResponseSchema.parse(response);
+
+      if (validated.data === undefined) {
         throw new MeetingNotFoundError(meetingId);
       }
 
-      // Validate response and unwrap nested meeting field
-      const validated = larkMeetingDetailDataSchema.parse(response.data);
+      const meeting = validated.data.meeting_list.find(
+        (m) => m.meeting_id === meetingId
+      );
 
-      return transformLarkMeeting(validated.meeting);
+      if (meeting === undefined) {
+        throw new MeetingNotFoundError(meetingId);
+      }
+
+      return transformLarkMeeting(meeting);
     } catch (error) {
       if (error instanceof MeetingNotFoundError) {
         throw error;
       }
       if (error instanceof LarkClientError) {
-        // Check for not found error codes
         if (error.code === 99991663 || error.code === 99991664) {
           throw new MeetingNotFoundError(meetingId, error.message);
         }
