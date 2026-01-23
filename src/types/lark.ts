@@ -103,6 +103,8 @@ export const LarkScopes = {
   VC_MEETING_READ: 'vc:meeting:readonly',
   /** Read VC meeting recordings */
   VC_RECORD_READ: 'vc:record:readonly',
+  /** Read VC rooms (required for meeting_list) */
+  VC_ROOM_READ: 'vc:room:readonly',
 } as const;
 
 export type LarkScope = (typeof LarkScopes)[keyof typeof LarkScopes];

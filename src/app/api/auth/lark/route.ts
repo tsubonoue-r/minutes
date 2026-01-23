@@ -35,6 +35,7 @@ export async function GET(request: Request): Promise<Response> {
       LarkScopes.MINUTES_READ,
       LarkScopes.VC_MEETING_READ,
       LarkScopes.VC_RECORD_READ,
+      LarkScopes.VC_ROOM_READ,
     ].join(' ');
 
     const authorizationUrl = buildAuthorizationUrl(config, state, scope);
