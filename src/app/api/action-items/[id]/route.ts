@@ -17,6 +17,7 @@ import {
   SpeakerSchema,
 } from '@/types/minutes';
 import { getCache, CACHE_PATTERNS } from '@/lib/cache';
+import { getSSEManager } from '@/lib/sse';
 
 // ============================================================================
 // Types
@@ -305,6 +306,13 @@ export async function PATCH(
     // Invalidate action-items stats cache after update
     const cache = getCache();
     cache.invalidateByPattern(CACHE_PATTERNS.ACTION_ITEMS);
+
+    // Emit SSE event: action item updated
+    const sseManager = getSSEManager();
+    sseManager.broadcast('action-item:updated', {
+      actionItemId: actionItemId,
+      updates: validatedData,
+    });
 
     return createSuccessResponse(updatedItem);
   } catch (error) {

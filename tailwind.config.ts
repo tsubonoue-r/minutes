@@ -28,9 +28,27 @@ const config: Config = {
             opacity: '1',
           },
         },
+        'slide-in-left': {
+          '0%': {
+            transform: 'translateX(-100%)',
+          },
+          '100%': {
+            transform: 'translateX(0)',
+          },
+        },
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+          },
+          '100%': {
+            opacity: '1',
+          },
+        },
       },
       animation: {
         'slide-in-up': 'slide-in-up 0.3s ease-out',
+        'slide-in-left': 'slide-in-left 0.3s ease-out',
+        'fade-in': 'fade-in 0.2s ease-out',
       },
     },
   },

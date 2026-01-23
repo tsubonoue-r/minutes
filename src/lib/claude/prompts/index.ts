@@ -94,3 +94,47 @@ export {
   type PromptSection,
   type StructuredPrompt,
 } from './templates';
+
+// =============================================================================
+// AI Enhancement Prompts
+// =============================================================================
+
+export {
+  // System Prompts
+  DUPLICATE_DETECTION_SYSTEM_PROMPT,
+  FOLLOW_UP_DETECTION_SYSTEM_PROMPT,
+  QUALITY_SCORING_SYSTEM_PROMPT,
+  IMPROVEMENT_SUGGESTION_SYSTEM_PROMPT,
+
+  // Quality Criteria
+  QUALITY_CRITERIA,
+
+  // User Prompt Builders
+  buildDuplicateDetectionPrompt,
+  buildFollowUpDetectionPrompt,
+  buildQualityScoringPrompt,
+  buildImprovementSuggestionPrompt,
+} from './ai-enhancement';
+
+// =============================================================================
+// Summary Levels
+// =============================================================================
+
+export {
+  // System Prompts
+  BRIEF_SUMMARY_SYSTEM_PROMPT,
+  STANDARD_SUMMARY_SYSTEM_PROMPT,
+  DETAILED_SUMMARY_SYSTEM_PROMPT,
+
+  // Prompt Builders
+  getSummarySystemPrompt,
+  buildSummaryPrompt,
+
+  // Config
+  SUMMARY_LEVEL_CONFIGS,
+  getSummaryLevelConfig,
+  getAllSummaryLevelConfigs,
+
+  // Types
+  type SummaryLevelConfig,
+} from './summary-levels';

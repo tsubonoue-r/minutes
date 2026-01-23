@@ -8,6 +8,7 @@
 import type { MeetingData } from '@/hooks/use-meetings';
 import type { MeetingStatus } from '@/types/meeting';
 import { Avatar, Badge, TableSkeleton } from '@/components/ui';
+import { MeetingCard } from './MeetingCard';
 
 /**
  * Format date for display
@@ -228,7 +229,7 @@ export function MeetingList({
   // Loading state
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-lg border border-lark-border ${className}`}>
+      <div className={`bg-white rounded-lg border border-lark-border p-4 ${className}`}>
         <TableSkeleton rows={5} columns={8} />
       </div>
     );
@@ -237,7 +238,7 @@ export function MeetingList({
   // Error state
   if (error !== null) {
     return (
-      <div className={`bg-white rounded-lg border border-lark-border ${className}`}>
+      <div className={`bg-white rounded-lg border border-lark-border p-4 ${className}`}>
         <ErrorState error={error} />
       </div>
     );
@@ -246,76 +247,86 @@ export function MeetingList({
   // Empty state
   if (meetings.length === 0) {
     return (
-      <div className={`bg-white rounded-lg border border-lark-border ${className}`}>
+      <div className={`bg-white rounded-lg border border-lark-border p-4 ${className}`}>
         <EmptyState />
       </div>
     );
   }
 
   return (
-    <div
-      className={`bg-white rounded-lg border border-lark-border overflow-hidden ${className}`}
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full" role="grid" aria-label="会議一覧">
-          <thead className="bg-lark-background">
-            <tr>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                会議名
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                開始日時
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                所要時間
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                参加者
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                ホスト
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                ステータス
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                録画
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
-              >
-                <span className="sr-only">操作</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-lark-border">
-            {meetings.map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
-            ))}
-          </tbody>
-        </table>
+    <div className={className}>
+      {/* Mobile: Card layout (below md breakpoint) */}
+      <div className="md:hidden space-y-3" role="list" aria-label="会議一覧">
+        {meetings.map((meeting) => (
+          <MeetingCard key={meeting.id} meeting={meeting} />
+        ))}
+      </div>
+
+      {/* Desktop: Table layout (md breakpoint and above) */}
+      <div
+        className="hidden md:block bg-white rounded-lg border border-lark-border overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full" role="grid" aria-label="会議一覧">
+            <thead className="bg-lark-background">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  会議名
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  開始日時
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  所要時間
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  参加者
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  ホスト
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  ステータス
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  録画
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-semibold text-lark-text uppercase tracking-wider"
+                >
+                  <span className="sr-only">操作</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-lark-border">
+              {meetings.map((meeting) => (
+                <MeetingRow key={meeting.id} meeting={meeting} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

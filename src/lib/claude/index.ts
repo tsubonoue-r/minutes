@@ -123,3 +123,29 @@ export {
   type PromptSection,
   type StructuredPrompt,
 } from './prompts/index';
+
+// AI Enhancement Prompts
+export {
+  DUPLICATE_DETECTION_SYSTEM_PROMPT,
+  FOLLOW_UP_DETECTION_SYSTEM_PROMPT,
+  QUALITY_SCORING_SYSTEM_PROMPT,
+  IMPROVEMENT_SUGGESTION_SYSTEM_PROMPT,
+  QUALITY_CRITERIA,
+  buildDuplicateDetectionPrompt,
+  buildFollowUpDetectionPrompt,
+  buildQualityScoringPrompt,
+  buildImprovementSuggestionPrompt,
+} from './prompts/index';
+
+// Summary Levels
+export {
+  BRIEF_SUMMARY_SYSTEM_PROMPT,
+  STANDARD_SUMMARY_SYSTEM_PROMPT,
+  DETAILED_SUMMARY_SYSTEM_PROMPT,
+  getSummarySystemPrompt,
+  buildSummaryPrompt,
+  SUMMARY_LEVEL_CONFIGS,
+  getSummaryLevelConfig,
+  getAllSummaryLevelConfigs,
+  type SummaryLevelConfig,
+} from './prompts/index';

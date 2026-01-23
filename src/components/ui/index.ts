@@ -63,3 +63,7 @@ export type {
   ToastContextValue,
   ToastProviderProps,
 } from './toast-provider';
+
+// ConnectionStatus
+export { ConnectionStatus } from './connection-status';
+export type { ConnectionStatusProps } from './connection-status';

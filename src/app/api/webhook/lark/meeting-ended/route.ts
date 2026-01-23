@@ -26,6 +26,7 @@ import {
 } from '@/services/notification.service';
 import { createLarkBaseServiceFromEnv } from '@/services/lark-base.service';
 import { getCache, CACHE_PATTERNS } from '@/lib/cache';
+import { getSSEManager } from '@/lib/sse';
 
 // =============================================================================
 // Types
@@ -365,6 +366,13 @@ export async function POST(request: Request): Promise<Response> {
           eventType: payload.event.type,
         });
 
+        // Emit SSE event: meeting ended
+        const sseManager = getSSEManager();
+        sseManager.broadcast('meeting:ended', {
+          meetingId: payload.event.meeting_id,
+          eventId: payload.header.event_id,
+        });
+
         // Process the event (fire and forget, respond immediately)
         // Note: In production, this should be moved to a queue/background job
         void processEventAsync(payload);
@@ -422,12 +430,27 @@ export async function POST(request: Request): Promise<Response> {
  */
 async function processEventAsync(payload: WebhookPayload): Promise<void> {
   const service = getWebhookService();
+  const sseManager = getSSEManager();
 
   try {
+    // Emit SSE event: minutes generation starting
+    sseManager.broadcast('minutes:generating', {
+      meetingId: payload.event.meeting_id,
+      progress: 0,
+    });
+
     // Get app access token for API calls using dynamic token management
     const accessToken = await getAppAccessTokenForWebhook();
 
     const result = await service.processEvent(payload, accessToken);
+
+    // Emit SSE event: minutes generation completed
+    sseManager.broadcast('minutes:completed', {
+      meetingId: payload.event.meeting_id,
+      eventId: result.eventId,
+      state: result.state,
+      durationMs: result.durationMs,
+    });
 
     // Invalidate meetings and dashboard caches after a meeting ends
     const cache = getCache();

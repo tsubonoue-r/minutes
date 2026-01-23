@@ -336,6 +336,12 @@ function ActionItemFiltersInner({
   meetings = [],
   className = '',
 }: ActionItemFiltersProps): JSX.Element {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleToggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
+
   const statusOptions: readonly { readonly value: ActionItemStatus; readonly label: string }[] = [
     { value: 'pending', label: STATUS_LABELS.pending },
     { value: 'in_progress', label: STATUS_LABELS.in_progress },
@@ -400,68 +406,48 @@ function ActionItemFiltersInner({
   const hasFilters = hasActiveFilters(filters);
 
   return (
-    <div className={`flex flex-wrap items-center gap-3 ${className}`}>
-      {/* Status filter */}
-      <MultiSelectDropdown
-        label="Status"
-        options={statusOptions}
-        selected={filters.statuses}
-        onChange={handleStatusChange}
-      />
-
-      {/* Priority filter */}
-      <MultiSelectDropdown
-        label="Priority"
-        options={priorityOptions}
-        selected={filters.priorities}
-        onChange={handlePriorityChange}
-      />
-
-      {/* Assignee filter */}
-      {assignees.length > 0 && (
-        <SingleSelectDropdown
-          label="Assignee"
-          options={assigneeOptions}
-          selected={filters.assigneeId}
-          onChange={handleAssigneeChange}
-        />
-      )}
-
-      {/* Meeting filter */}
-      {meetings.length > 0 && (
-        <SingleSelectDropdown
-          label="Meeting"
-          options={meetingOptions}
-          selected={filters.meetingId}
-          onChange={handleMeetingChange}
-        />
-      )}
-
-      {/* Overdue only checkbox */}
-      <label className="flex items-center gap-2 text-sm text-lark-text cursor-pointer">
-        <input
-          type="checkbox"
-          checked={filters.overdueOnly}
-          onChange={handleOverdueChange}
-          className="w-4 h-4 rounded border-gray-300 text-lark-primary focus:ring-lark-primary"
-        />
-        <span>Overdue only</span>
-      </label>
-
-      {/* Clear filters button */}
-      {hasFilters && (
+    <div className={className}>
+      {/* Mobile: Accordion-style filter toggle */}
+      <div className="md:hidden">
         <button
           type="button"
-          onClick={handleClearFilters}
+          onClick={handleToggleExpand}
           className="
-            flex items-center gap-1 px-3 py-2 text-sm
-            text-gray-500 hover:text-lark-text
-            transition-colors duration-150
+            flex items-center justify-between w-full px-3 py-2.5
+            min-h-[44px]
+            text-sm font-medium text-lark-text
+            bg-white border border-lark-border rounded-lg
+            hover:bg-lark-background transition-colors
           "
-          aria-label="Clear all filters"
+          aria-expanded={isExpanded}
+          aria-controls="mobile-filters-panel"
         >
+          <span className="flex items-center gap-2">
+            <svg
+              className="w-4 h-4 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
+            <span>Filters</span>
+            {hasFilters && (
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-lark-primary rounded-full">
+                !
+              </span>
+            )}
+          </span>
           <svg
-            className="w-4 h-4"
+            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -471,12 +457,178 @@ function ActionItemFiltersInner({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
+              d="M19 9l-7 7-7-7"
             />
           </svg>
-          <span>Clear</span>
         </button>
-      )}
+
+        {/* Expandable filter panel */}
+        {isExpanded && (
+          <div
+            id="mobile-filters-panel"
+            className="mt-2 p-3 bg-white border border-lark-border rounded-lg space-y-3 animate-fade-in"
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <MultiSelectDropdown
+                label="Status"
+                options={statusOptions}
+                selected={filters.statuses}
+                onChange={handleStatusChange}
+                className="w-full"
+              />
+              <MultiSelectDropdown
+                label="Priority"
+                options={priorityOptions}
+                selected={filters.priorities}
+                onChange={handlePriorityChange}
+                className="w-full"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {assignees.length > 0 && (
+                <SingleSelectDropdown
+                  label="Assignee"
+                  options={assigneeOptions}
+                  selected={filters.assigneeId}
+                  onChange={handleAssigneeChange}
+                  className="w-full"
+                />
+              )}
+              {meetings.length > 0 && (
+                <SingleSelectDropdown
+                  label="Meeting"
+                  options={meetingOptions}
+                  selected={filters.meetingId}
+                  onChange={handleMeetingChange}
+                  className="w-full"
+                />
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm text-lark-text cursor-pointer min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={filters.overdueOnly}
+                  onChange={handleOverdueChange}
+                  className="w-4 h-4 rounded border-gray-300 text-lark-primary focus:ring-lark-primary"
+                />
+                <span>Overdue only</span>
+              </label>
+
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="
+                    flex items-center gap-1 px-3 py-2 text-sm min-h-[44px]
+                    text-gray-500 hover:text-lark-text
+                    transition-colors duration-150
+                  "
+                  aria-label="Clear all filters"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  <span>Clear</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: Inline filter bar */}
+      <div className="hidden md:flex flex-wrap items-center gap-3">
+        {/* Status filter */}
+        <MultiSelectDropdown
+          label="Status"
+          options={statusOptions}
+          selected={filters.statuses}
+          onChange={handleStatusChange}
+        />
+
+        {/* Priority filter */}
+        <MultiSelectDropdown
+          label="Priority"
+          options={priorityOptions}
+          selected={filters.priorities}
+          onChange={handlePriorityChange}
+        />
+
+        {/* Assignee filter */}
+        {assignees.length > 0 && (
+          <SingleSelectDropdown
+            label="Assignee"
+            options={assigneeOptions}
+            selected={filters.assigneeId}
+            onChange={handleAssigneeChange}
+          />
+        )}
+
+        {/* Meeting filter */}
+        {meetings.length > 0 && (
+          <SingleSelectDropdown
+            label="Meeting"
+            options={meetingOptions}
+            selected={filters.meetingId}
+            onChange={handleMeetingChange}
+          />
+        )}
+
+        {/* Overdue only checkbox */}
+        <label className="flex items-center gap-2 text-sm text-lark-text cursor-pointer">
+          <input
+            type="checkbox"
+            checked={filters.overdueOnly}
+            onChange={handleOverdueChange}
+            className="w-4 h-4 rounded border-gray-300 text-lark-primary focus:ring-lark-primary"
+          />
+          <span>Overdue only</span>
+        </label>
+
+        {/* Clear filters button */}
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="
+              flex items-center gap-1 px-3 py-2 text-sm
+              text-gray-500 hover:text-lark-text
+              transition-colors duration-150
+            "
+            aria-label="Clear all filters"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            <span>Clear</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

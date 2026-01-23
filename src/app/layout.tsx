@@ -6,6 +6,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { ToastProvider } from '@/components/ui/toast-provider';
+import { I18nProvider } from '@/lib/i18n/provider';
 import './globals.css';
 
 const inter = Inter({
@@ -73,9 +74,11 @@ export default function RootLayout({ children }: RootLayoutProps): React.ReactEl
         </a>
 
         {/* Main content */}
-        <ToastProvider>
-          <main id="main-content">{children}</main>
-        </ToastProvider>
+        <I18nProvider>
+          <ToastProvider>
+            <main id="main-content">{children}</main>
+          </ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );
