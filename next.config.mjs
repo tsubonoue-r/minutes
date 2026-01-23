@@ -2,6 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.feishucdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.larksuite.com',
+      },
+    ],
+  },
   /**
    * Edge Runtime (middleware) で環境変数を利用可能にする
    * DEV_SKIP_AUTH: 開発環境での認証スキップフラグ
