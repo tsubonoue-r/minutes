@@ -260,7 +260,7 @@ export async function PATCH(
         'INVALID_PARAMS',
         'Invalid request body',
         400,
-        { validationErrors: validation.error.errors }
+        { validationErrors: validation.error.issues }
       );
     }
 

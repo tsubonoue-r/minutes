@@ -3,7 +3,7 @@
  * @module types/approval
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Enums and Constants
@@ -669,7 +669,7 @@ export function filterApprovalRequests(
  */
 export function validateApprovalRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, ApprovalRequest> {
+): ZodSafeParseResult<ApprovalRequest> {
   return ApprovalRequestSchema.safeParse(data);
 }
 
@@ -681,7 +681,7 @@ export function validateApprovalRequest(
  */
 export function validateCreateApprovalRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, CreateApprovalRequestInput> {
+): ZodSafeParseResult<CreateApprovalRequestInput> {
   return CreateApprovalRequestSchema.safeParse(data);
 }
 
@@ -693,7 +693,7 @@ export function validateCreateApprovalRequest(
  */
 export function validateResolveApprovalRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, ResolveApprovalRequestInput> {
+): ZodSafeParseResult<ResolveApprovalRequestInput> {
   return ResolveApprovalRequestSchema.safeParse(data);
 }
 
@@ -705,7 +705,7 @@ export function validateResolveApprovalRequest(
  */
 export function validateApprovalFilters(
   data: unknown
-): z.SafeParseReturnType<unknown, ApprovalFilters> {
+): ZodSafeParseResult<ApprovalFilters> {
   return ApprovalFiltersSchema.safeParse(data);
 }
 
@@ -717,6 +717,6 @@ export function validateApprovalFilters(
  */
 export function validateApprovalHistoryEntry(
   data: unknown
-): z.SafeParseReturnType<unknown, ApprovalHistoryEntry> {
+): ZodSafeParseResult<ApprovalHistoryEntry> {
   return ApprovalHistoryEntrySchema.safeParse(data);
 }

@@ -146,11 +146,11 @@ export async function GET(request: Request): Promise<Response> {
     } catch (error) {
       const message =
         error instanceof z.ZodError
-          ? error.errors.map((e) => e.message).join(', ')
+          ? error.issues.map((e) => e.message).join(', ')
           : 'Invalid query parameters';
 
       return createErrorResponse('INVALID_PARAMS', message, 400, {
-        validationError: error instanceof z.ZodError ? error.errors : undefined,
+        validationError: error instanceof z.ZodError ? error.issues : undefined,
       });
     }
 

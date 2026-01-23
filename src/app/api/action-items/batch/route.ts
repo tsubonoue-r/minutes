@@ -137,7 +137,7 @@ export async function PATCH(request: Request): Promise<Response> {
         'INVALID_PARAMS',
         'Invalid request body',
         400,
-        { validationErrors: validation.error.errors }
+        { validationErrors: validation.error.issues }
       );
     }
 

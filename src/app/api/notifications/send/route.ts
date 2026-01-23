@@ -96,7 +96,7 @@ const cardMessageRequestSchema = z.object({
           .optional(),
       })
       .optional(),
-    elements: z.array(z.record(z.unknown())),
+    elements: z.array(z.record(z.string(), z.unknown())),
   }),
 });
 
@@ -207,7 +207,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!parseResult.success) {
       return createErrorResponse(
         'VALIDATION_ERROR',
-        parseResult.error.errors.map((e) => e.message).join(', '),
+        parseResult.error.issues.map((e) => e.message).join(', '),
         400
       );
     }

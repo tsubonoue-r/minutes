@@ -157,7 +157,7 @@ async function parseRequestBody(
     const result = ExportRequestSchema.safeParse(body);
 
     if (!result.success) {
-      const errorMessage = result.error.errors
+      const errorMessage = result.error.issues
         .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join('; ');
       return { error: errorMessage };

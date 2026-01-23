@@ -362,12 +362,12 @@ export async function GET(request: Request): Promise<Response> {
     const validationResult = SearchQuerySchema.safeParse(rawParams);
 
     if (!validationResult.success) {
-      const message = validationResult.error.errors
+      const message = validationResult.error.issues
         .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ');
 
       return createErrorResponse('INVALID_PARAMS', message, 400, {
-        validationErrors: validationResult.error.errors,
+        validationErrors: validationResult.error.issues,
       });
     }
 
@@ -487,12 +487,12 @@ export async function POST(request: Request): Promise<Response> {
     const validationResult = SearchQuerySchema.safeParse(body);
 
     if (!validationResult.success) {
-      const message = validationResult.error.errors
+      const message = validationResult.error.issues
         .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ');
 
       return createErrorResponse('INVALID_PARAMS', message, 400, {
-        validationErrors: validationResult.error.errors,
+        validationErrors: validationResult.error.issues,
       });
     }
 

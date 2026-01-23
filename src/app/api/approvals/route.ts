@@ -139,7 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         success: false,
         error: 'Invalid request body',
         code: 'VALIDATION_ERROR',
-        details: parseResult.error.errors,
+        details: parseResult.error.issues,
       },
       { status: 400 }
     );
@@ -234,7 +234,7 @@ export function GET(request: NextRequest): NextResponse {
         success: false,
         error: 'Invalid query parameters',
         code: 'VALIDATION_ERROR',
-        details: parseResult.error.errors,
+        details: parseResult.error.issues,
       },
       { status: 400 }
     );

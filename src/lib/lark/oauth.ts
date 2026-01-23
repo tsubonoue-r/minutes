@@ -124,11 +124,11 @@ export async function exchangeCodeForToken(
     const parseResult = userAccessTokenResponseSchema.safeParse(response);
 
     if (!parseResult.success) {
-      console.error('[OAuth] Parse error paths:', parseResult.error.errors.map(e => e.path));
+      console.error('[OAuth] Parse error paths:', parseResult.error.issues.map(e => e.path));
       return authFailure(
         'token_exchange_failed',
         'Invalid response structure from Lark API',
-        parseResult.error.errors
+        parseResult.error.issues
       );
     }
 
@@ -195,7 +195,7 @@ export async function refreshAccessToken(
       return authFailure(
         'token_refresh_failed',
         'Invalid response structure from Lark API',
-        parseResult.error.errors
+        parseResult.error.issues
       );
     }
 

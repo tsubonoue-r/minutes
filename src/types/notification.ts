@@ -3,7 +3,7 @@
  * @module types/notification
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Enums and Constants
@@ -519,7 +519,7 @@ export function calculateNotificationStats(
  */
 export function validateNotificationHistory(
   data: unknown
-): z.SafeParseReturnType<unknown, NotificationHistory> {
+): ZodSafeParseResult<NotificationHistory> {
   return NotificationHistorySchema.safeParse(data);
 }
 
@@ -531,7 +531,7 @@ export function validateNotificationHistory(
  */
 export function validateGroupNotificationRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, GroupNotificationRequest> {
+): ZodSafeParseResult<GroupNotificationRequest> {
   return GroupNotificationRequestSchema.safeParse(data);
 }
 
@@ -543,7 +543,7 @@ export function validateGroupNotificationRequest(
  */
 export function validateBatchNotificationRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, BatchNotificationRequest> {
+): ZodSafeParseResult<BatchNotificationRequest> {
   return BatchNotificationRequestSchema.safeParse(data);
 }
 
@@ -555,6 +555,6 @@ export function validateBatchNotificationRequest(
  */
 export function validateNotificationFilters(
   data: unknown
-): z.SafeParseReturnType<unknown, NotificationFilters> {
+): ZodSafeParseResult<NotificationFilters> {
   return NotificationFiltersSchema.safeParse(data);
 }

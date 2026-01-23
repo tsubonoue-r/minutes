@@ -3,7 +3,7 @@
  * @module types/reminder
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Enums and Constants
@@ -213,7 +213,7 @@ export const ReminderSchema = z.object({
   /** Minutes reference (for minutes_review type) */
   minutesRef: MinutesReminderRefSchema.optional(),
   /** Custom data for custom reminders */
-  customData: z.record(z.unknown()).optional(),
+  customData: z.record(z.string(), z.unknown()).optional(),
   /** Notification language */
   language: z.enum(['ja', 'en']).default('ja'),
   /** Lark message ID if sent */
@@ -277,7 +277,7 @@ export const CreateReminderSchema = z.object({
   /** Minutes reference (for minutes_review type) */
   minutesRef: MinutesReminderRefSchema.optional(),
   /** Custom data for custom reminders */
-  customData: z.record(z.unknown()).optional(),
+  customData: z.record(z.string(), z.unknown()).optional(),
   /** Notification language */
   language: z.enum(['ja', 'en']).default('ja'),
 });
@@ -788,7 +788,7 @@ export function getTypeLabel(type: ReminderType, language: 'ja' | 'en'): string 
  */
 export function validateReminder(
   data: unknown
-): z.SafeParseReturnType<unknown, Reminder> {
+): ZodSafeParseResult<Reminder> {
   return ReminderSchema.safeParse(data);
 }
 
@@ -800,7 +800,7 @@ export function validateReminder(
  */
 export function validateCreateReminderInput(
   data: unknown
-): z.SafeParseReturnType<unknown, CreateReminderInput> {
+): ZodSafeParseResult<CreateReminderInput> {
   return CreateReminderSchema.safeParse(data);
 }
 
@@ -812,7 +812,7 @@ export function validateCreateReminderInput(
  */
 export function validateUpdateReminderInput(
   data: unknown
-): z.SafeParseReturnType<unknown, UpdateReminderInput> {
+): ZodSafeParseResult<UpdateReminderInput> {
   return UpdateReminderSchema.safeParse(data);
 }
 
@@ -824,7 +824,7 @@ export function validateUpdateReminderInput(
  */
 export function validateReminderFilters(
   data: unknown
-): z.SafeParseReturnType<unknown, ReminderFilters> {
+): ZodSafeParseResult<ReminderFilters> {
   return ReminderFiltersSchema.safeParse(data);
 }
 
@@ -836,6 +836,6 @@ export function validateReminderFilters(
  */
 export function validateReminderSchedule(
   data: unknown
-): z.SafeParseReturnType<unknown, ReminderSchedule> {
+): ZodSafeParseResult<ReminderSchedule> {
   return ReminderScheduleSchema.safeParse(data);
 }

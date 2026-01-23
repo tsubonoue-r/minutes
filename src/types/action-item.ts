@@ -3,7 +3,7 @@
  * @module types/action-item
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 import {
   ActionItem,
   ActionItemSchema,
@@ -799,7 +799,7 @@ export function createManagedActionItem(
  */
 export function validateManagedActionItem(
   data: unknown
-): z.SafeParseReturnType<unknown, ManagedActionItem> {
+): ZodSafeParseResult<ManagedActionItem> {
   return ManagedActionItemSchema.safeParse(data);
 }
 
@@ -811,7 +811,7 @@ export function validateManagedActionItem(
  */
 export function validateActionItemFilters(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemFilters> {
+): ZodSafeParseResult<ActionItemFilters> {
   return ActionItemFiltersSchema.safeParse(data);
 }
 
@@ -823,7 +823,7 @@ export function validateActionItemFilters(
  */
 export function validateActionItemSortOptions(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemSortOptions> {
+): ZodSafeParseResult<ActionItemSortOptions> {
   return ActionItemSortOptionsSchema.safeParse(data);
 }
 
@@ -835,7 +835,7 @@ export function validateActionItemSortOptions(
  */
 export function validateActionItemPagination(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemPagination> {
+): ZodSafeParseResult<ActionItemPagination> {
   return ActionItemPaginationSchema.safeParse(data);
 }
 
@@ -847,7 +847,7 @@ export function validateActionItemPagination(
  */
 export function validateActionItemListResponse(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemListResponse> {
+): ZodSafeParseResult<ActionItemListResponse> {
   return ActionItemListResponseSchema.safeParse(data);
 }
 
@@ -859,7 +859,7 @@ export function validateActionItemListResponse(
  */
 export function validateActionItemStatusUpdate(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemStatusUpdate> {
+): ZodSafeParseResult<ActionItemStatusUpdate> {
   return ActionItemStatusUpdateSchema.safeParse(data);
 }
 
@@ -871,6 +871,6 @@ export function validateActionItemStatusUpdate(
  */
 export function validateActionItemStats(
   data: unknown
-): z.SafeParseReturnType<unknown, ActionItemStats> {
+): ZodSafeParseResult<ActionItemStats> {
   return ActionItemStatsSchema.safeParse(data);
 }

@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
   /**
    * Edge Runtime (middleware) で環境変数を利用可能にする
    * DEV_SKIP_AUTH: 開発環境での認証スキップフラグ

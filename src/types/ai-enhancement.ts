@@ -10,7 +10,7 @@
  * @module types/ai-enhancement
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Summary Level Types
@@ -252,7 +252,7 @@ export type AnalysisResponse = z.infer<typeof AnalysisResponseSchema>;
  */
 export function validateDuplicateGroup(
   data: unknown
-): z.SafeParseReturnType<unknown, DuplicateGroup> {
+): ZodSafeParseResult<DuplicateGroup> {
   return DuplicateGroupSchema.safeParse(data);
 }
 
@@ -264,7 +264,7 @@ export function validateDuplicateGroup(
  */
 export function validateFollowUpRelation(
   data: unknown
-): z.SafeParseReturnType<unknown, FollowUpRelation> {
+): ZodSafeParseResult<FollowUpRelation> {
   return FollowUpRelationSchema.safeParse(data);
 }
 
@@ -276,7 +276,7 @@ export function validateFollowUpRelation(
  */
 export function validateQualityScore(
   data: unknown
-): z.SafeParseReturnType<unknown, QualityScore> {
+): ZodSafeParseResult<QualityScore> {
   return QualityScoreSchema.safeParse(data);
 }
 
@@ -288,7 +288,7 @@ export function validateQualityScore(
  */
 export function validateImprovement(
   data: unknown
-): z.SafeParseReturnType<unknown, Improvement> {
+): ZodSafeParseResult<Improvement> {
   return ImprovementSchema.safeParse(data);
 }
 
@@ -300,6 +300,6 @@ export function validateImprovement(
  */
 export function validateAnalysisResponse(
   data: unknown
-): z.SafeParseReturnType<unknown, AnalysisResponse> {
+): ZodSafeParseResult<AnalysisResponse> {
   return AnalysisResponseSchema.safeParse(data);
 }

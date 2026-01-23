@@ -197,7 +197,7 @@ export async function PUT(
         success: false,
         error: 'Invalid request body',
         code: 'VALIDATION_ERROR',
-        details: parseResult.error.errors,
+        details: parseResult.error.issues,
       },
       { status: 400 }
     );

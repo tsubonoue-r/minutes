@@ -6,7 +6,7 @@
  * @module lib/claude/prompts/minutes-generation
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Types
@@ -430,6 +430,6 @@ export function validateMinutesGenerationInput(
  */
 export function validateMinutesOutput(
   output: unknown
-): z.SafeParseReturnType<unknown, MinutesOutput> {
+): ZodSafeParseResult<MinutesOutput> {
   return minutesOutputSchema.safeParse(output);
 }

@@ -119,7 +119,7 @@ export const buttonElementSchema = z.object({
   text: plainTextSchema,
   url: z.string().url().optional(),
   type: buttonTypeSchema.optional(),
-  value: z.record(z.string()).optional(),
+  value: z.record(z.string(), z.string()).optional(),
 });
 
 export type ButtonElement = z.infer<typeof buttonElementSchema>;

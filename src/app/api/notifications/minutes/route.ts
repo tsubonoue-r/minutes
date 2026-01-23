@@ -192,7 +192,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!parseResult.success) {
       return createErrorResponse(
         'VALIDATION_ERROR',
-        parseResult.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        parseResult.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
         400
       );
     }

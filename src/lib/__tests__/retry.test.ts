@@ -293,8 +293,9 @@ describe('retryOrThrow', () => {
 
     expect(caughtError).not.toBeNull();
     expect(caughtError).toBeInstanceOf(RetryExhaustedError);
-    expect(caughtError?.attempts).toBe(2);
-    expect(caughtError?.operationName).toBe('testOperation');
+    const err = caughtError as unknown as RetryExhaustedError;
+    expect(err.attempts).toBe(2);
+    expect(err.operationName).toBe('testOperation');
   });
 });
 

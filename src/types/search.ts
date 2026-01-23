@@ -3,7 +3,7 @@
  * @module types/search
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // ============================================================================
 // Zod Schemas
@@ -574,7 +574,7 @@ export function getResultTypeLabel(type: SearchResultItem['type']): string {
  */
 export function validateSearchQuery(
   data: unknown
-): z.SafeParseReturnType<unknown, SearchQuery> {
+): ZodSafeParseResult<SearchQuery> {
   return SearchQuerySchema.safeParse(data);
 }
 
@@ -586,7 +586,7 @@ export function validateSearchQuery(
  */
 export function validateSearchResponse(
   data: unknown
-): z.SafeParseReturnType<unknown, SearchResponse> {
+): ZodSafeParseResult<SearchResponse> {
   return SearchResponseSchema.safeParse(data);
 }
 

@@ -3,7 +3,7 @@
  * @module types/minutes
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // ============================================================================
 // Zod Schemas
@@ -713,7 +713,7 @@ export function createTopicSegment(
  * @param data - Data to validate
  * @returns Validation result with success flag and data/error
  */
-export function validateMinutes(data: unknown): z.SafeParseReturnType<unknown, Minutes> {
+export function validateMinutes(data: unknown): ZodSafeParseResult<Minutes> {
   return MinutesSchema.safeParse(data);
 }
 
@@ -723,7 +723,7 @@ export function validateMinutes(data: unknown): z.SafeParseReturnType<unknown, M
  * @param data - Data to validate
  * @returns Validation result with success flag and data/error
  */
-export function validateActionItem(data: unknown): z.SafeParseReturnType<unknown, ActionItem> {
+export function validateActionItem(data: unknown): ZodSafeParseResult<ActionItem> {
   return ActionItemSchema.safeParse(data);
 }
 
@@ -733,7 +733,7 @@ export function validateActionItem(data: unknown): z.SafeParseReturnType<unknown
  * @param data - Data to validate
  * @returns Validation result with success flag and data/error
  */
-export function validateTopicSegment(data: unknown): z.SafeParseReturnType<unknown, TopicSegment> {
+export function validateTopicSegment(data: unknown): ZodSafeParseResult<TopicSegment> {
   return TopicSegmentSchema.safeParse(data);
 }
 
@@ -743,7 +743,7 @@ export function validateTopicSegment(data: unknown): z.SafeParseReturnType<unkno
  * @param data - Data to validate
  * @returns Validation result with success flag and data/error
  */
-export function validateSpeaker(data: unknown): z.SafeParseReturnType<unknown, Speaker> {
+export function validateSpeaker(data: unknown): ZodSafeParseResult<Speaker> {
   return SpeakerSchema.safeParse(data);
 }
 
@@ -753,6 +753,6 @@ export function validateSpeaker(data: unknown): z.SafeParseReturnType<unknown, S
  * @param data - Data to validate
  * @returns Validation result with success flag and data/error
  */
-export function validateDecisionItem(data: unknown): z.SafeParseReturnType<unknown, DecisionItem> {
+export function validateDecisionItem(data: unknown): ZodSafeParseResult<DecisionItem> {
   return DecisionItemSchema.safeParse(data);
 }

@@ -113,7 +113,7 @@ export async function POST(request: Request): Promise<Response> {
         'VALIDATION_ERROR',
         'Invalid request data',
         400,
-        { errors: validationResult.error.errors }
+        { errors: validationResult.error.issues }
       );
     }
 

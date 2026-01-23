@@ -200,7 +200,7 @@ export async function PATCH(
         'VALIDATION_ERROR',
         'Invalid template data',
         400,
-        { errors: validationResult.error.errors }
+        { errors: validationResult.error.issues }
       );
     }
 

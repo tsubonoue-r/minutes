@@ -3,7 +3,7 @@
  * @module types/template
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // ============================================================================
 // Enums and Constants
@@ -464,7 +464,7 @@ export function getMeetingTypeLabel(
  */
 export function validateTemplate(
   data: unknown
-): z.SafeParseReturnType<unknown, Template> {
+): ZodSafeParseResult<Template> {
   return TemplateSchema.safeParse(data);
 }
 
@@ -476,7 +476,7 @@ export function validateTemplate(
  */
 export function validateTemplateCreateInput(
   data: unknown
-): z.SafeParseReturnType<unknown, TemplateCreateInput> {
+): ZodSafeParseResult<TemplateCreateInput> {
   return TemplateCreateInputSchema.safeParse(data);
 }
 
@@ -488,7 +488,7 @@ export function validateTemplateCreateInput(
  */
 export function validateTemplateUpdateInput(
   data: unknown
-): z.SafeParseReturnType<unknown, TemplateUpdateInput> {
+): ZodSafeParseResult<TemplateUpdateInput> {
   return TemplateUpdateInputSchema.safeParse(data);
 }
 
@@ -500,7 +500,7 @@ export function validateTemplateUpdateInput(
  */
 export function validateTemplateSelectRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, TemplateSelectRequest> {
+): ZodSafeParseResult<TemplateSelectRequest> {
   return TemplateSelectRequestSchema.safeParse(data);
 }
 
@@ -512,7 +512,7 @@ export function validateTemplateSelectRequest(
  */
 export function validateTemplateExportData(
   data: unknown
-): z.SafeParseReturnType<unknown, TemplateExportData> {
+): ZodSafeParseResult<TemplateExportData> {
   return TemplateExportDataSchema.safeParse(data);
 }
 
@@ -524,7 +524,7 @@ export function validateTemplateExportData(
  */
 export function validateTemplateDuplicateRequest(
   data: unknown
-): z.SafeParseReturnType<unknown, TemplateDuplicateRequest> {
+): ZodSafeParseResult<TemplateDuplicateRequest> {
   return TemplateDuplicateRequestSchema.safeParse(data);
 }
 

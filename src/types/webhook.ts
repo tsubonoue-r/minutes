@@ -3,7 +3,7 @@
  * @module types/webhook
  */
 
-import { z } from 'zod';
+import { z, type ZodSafeParseResult } from 'zod';
 
 // =============================================================================
 // Constants
@@ -385,7 +385,7 @@ export function validateWebhookPayload(data: unknown): WebhookPayload {
  */
 export function safeParseWebhookPayload(
   data: unknown
-): z.SafeParseReturnType<unknown, WebhookPayload> {
+): ZodSafeParseResult<WebhookPayload> {
   return WebhookPayloadSchema.safeParse(data);
 }
 
