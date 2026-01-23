@@ -106,8 +106,8 @@ export async function getSession(): Promise<SessionData | null> {
   }
 
   try {
-    // cookies() returns ReadonlyRequestCookies in Next.js 14+
-    const cookieStore = cookies();
+    // cookies() returns a Promise in Next.js 16+
+    const cookieStore = await cookies();
 
     // Cast to iron-session compatible type
     const session = await getIronSession<SessionData>(
