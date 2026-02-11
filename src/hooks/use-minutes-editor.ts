@@ -5,7 +5,7 @@
  * @module hooks/use-minutes-editor
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import type {
   Minutes,
   TopicSegment,
