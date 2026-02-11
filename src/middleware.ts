@@ -29,6 +29,11 @@ const AUTH_ROUTES = ['/login'];
 const API_ROUTES = ['/api/'];
 
 /**
+ * Public routes that do not require authentication (accessible to everyone)
+ */
+const PUBLIC_ROUTES = ['/shared'];
+
+/**
  * Static assets and system routes to skip
  */
 const SKIP_ROUTES = ['/_next/', '/favicon.ico', '/robots.txt', '/sitemap.xml'];
@@ -179,6 +184,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   // API routes: apply security headers but skip auth (handled by route handlers)
   if (matchesPattern(pathname, API_ROUTES)) {
+    return applySecurityHeaders(NextResponse.next());
+  }
+
+  // Public routes (e.g., /shared) - allow through without authentication
+  if (matchesPattern(pathname, PUBLIC_ROUTES)) {
     return applySecurityHeaders(NextResponse.next());
   }
 
