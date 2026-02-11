@@ -342,6 +342,37 @@ export {
   unixTimestampToISOString,
 } from './webhook';
 
+// Analytics types - for meeting efficiency and cost analysis
+export {
+  // Zod Schemas
+  AnalyticsPeriodSchema,
+  CostEstimateSchema,
+  MeetingsByDayOfWeekSchema,
+  MeetingsByHourSchema,
+  MeetingAnalyticsSchema,
+  AnalyticsQuerySchema,
+  // Types
+  type AnalyticsPeriod,
+  type CostEstimate,
+  type MeetingsByDayOfWeek,
+  type MeetingsByHour,
+  type MeetingAnalytics,
+  type AnalyticsQuery,
+  type ReadonlyCostEstimate,
+  type ReadonlyMeetingsByDayOfWeek,
+  type ReadonlyMeetingsByHour,
+  type ReadonlyMeetingAnalytics,
+  // Utility functions
+  calculateAnalyticsPeriodDates,
+  formatDurationMs,
+  formatCurrency,
+  getDayLabel,
+  formatHour,
+  // Validation functions
+  validateMeetingAnalytics,
+  validateAnalyticsQuery,
+} from './analytics';
+
 // Calendar types
 export {
   // Constants
@@ -408,3 +439,94 @@ export {
   validateUpcomingEventsRequest,
   validateLinkMeetingToEventRequest,
 } from './calendar';
+
+// Settings types - for user preferences
+export {
+  // Constants
+  SUPPORTED_LANGUAGES,
+  DASHBOARD_PERIODS,
+  LANGUAGE_LABELS,
+  DASHBOARD_PERIOD_LABELS,
+  // Zod Schemas
+  NotificationSettingsSchema,
+  AISettingsSchema,
+  DisplaySettingsSchema,
+  UserSettingsSchema,
+  // Types
+  type SupportedLanguage,
+  type DashboardPeriod as SettingsDashboardPeriod,
+  type NotificationSettings,
+  type AISettings,
+  type DisplaySettings,
+  type UserSettings,
+  type ReadonlyNotificationSettings,
+  type ReadonlyAISettings,
+  type ReadonlyDisplaySettings,
+  type ReadonlyUserSettings,
+  // Factory functions
+  createDefaultSettings,
+  // Validation functions
+  validateUserSettings,
+  validateNotificationSettings,
+  validateAISettings,
+  validateDisplaySettings,
+} from './settings';
+
+// Batch types - for batch minutes generation
+export {
+  // Zod Schemas
+  BatchResultItemSchema,
+  BatchProgressSchema,
+  BatchJobSchema,
+  CreateBatchJobSchema,
+  // Types
+  type BatchResultItem,
+  type BatchProgress,
+  type BatchJob,
+  type CreateBatchJobInput,
+  type BatchJobStatus,
+  type BatchResultStatus,
+  type ReadonlyBatchResultItem,
+  type ReadonlyBatchProgress,
+  type ReadonlyBatchJob,
+  // Utility functions
+  generateBatchJobId,
+  createBatchJob,
+  isBatchJobFinished,
+  calculateBatchProgress,
+  getFailedMeetingIds,
+  // Validation functions
+  validateBatchJob,
+  validateCreateBatchJobInput,
+} from './batch';
+
+// Share types - for share link management
+export {
+  // Constants
+  SHARE_EXPIRY_OPTIONS,
+  SHARE_EXPIRY_LABELS,
+  // Zod Schemas
+  ShareExpiryOptionSchema,
+  ShareLinkSchema,
+  CreateShareLinkSchema,
+  ValidateShareAccessSchema,
+  // Types
+  type ShareExpiryOption,
+  type ShareLink,
+  type CreateShareLinkInput,
+  type ValidateShareAccessInput,
+  type ReadonlyShareLink,
+  // Utility functions
+  generateShareId,
+  generateShareToken,
+  calculateExpiresAt,
+  isShareLinkExpired,
+  isShareLinkValid,
+  buildShareUrl,
+  createShareLink as createShareLinkObj,
+  createShareLinkFull,
+  // Validation functions
+  validateShareLink,
+  validateCreateShareLinkInput,
+  validateShareAccessInput,
+} from './share';
