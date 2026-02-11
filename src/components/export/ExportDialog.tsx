@@ -2,9 +2,15 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { ExportOptions, ExportPermission, ExportStatus } from '@/types/export';
-import type { Speaker } from '@/types/minutes';
+import type { Minutes, Speaker } from '@/types/minutes';
+import { generatePdfDownload, PdfExportError } from '@/services/pdf-export.service';
 import { ExportProgress } from './ExportProgress';
 import { ExportSuccess } from './ExportSuccess';
+
+/**
+ * Export format type
+ */
+type ExportFormat = 'lark' | 'pdf';
 
 /**
  * Props for ExportDialog component
@@ -30,6 +36,8 @@ export interface ExportDialogProps {
   readonly exportResultUrl?: string | undefined;
   /** Export error message */
   readonly exportError?: string | undefined;
+  /** Minutes data for PDF export (optional, enables PDF option) */
+  readonly minutes?: Minutes | undefined;
   /** Custom class name */
   readonly className?: string | undefined;
 }
@@ -80,9 +88,37 @@ function LarkDocsIcon({ className = '' }: { readonly className?: string }): JSX.
 }
 
 /**
+ * PDF icon component
+ */
+function PdfIcon({ className = '' }: { readonly className?: string }): JSX.Element {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <rect width="24" height="24" rx="4" fill="#E53E3E" />
+      <text
+        x="12"
+        y="15.5"
+        textAnchor="middle"
+        fill="white"
+        fontSize="8"
+        fontWeight="bold"
+        fontFamily="sans-serif"
+      >
+        PDF
+      </text>
+    </svg>
+  );
+}
+
+/**
  * ExportDialog component
  *
- * @description Modal dialog for configuring and executing export to Lark Docs
+ * @description Modal dialog for configuring and executing export to Lark Docs or PDF
  *
  * @example
  * ```tsx
@@ -107,6 +143,7 @@ function ExportDialogInner({
   exportProgress = 0,
   exportResultUrl,
   exportError,
+  minutes,
   className = '',
 }: ExportDialogProps): JSX.Element | null {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -120,6 +157,8 @@ function ExportDialogInner({
   const [shareWithAttendees, setShareWithAttendees] = useState(false);
   const [permission, setPermission] = useState<ExportPermission>('view');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('lark');
+  const [pdfError, setPdfError] = useState<string | undefined>(undefined);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -128,6 +167,8 @@ function ExportDialogInner({
       setShareWithAttendees(false);
       setPermission('view');
       setIsSubmitting(false);
+      setExportFormat('lark');
+      setPdfError(undefined);
     }
   }, [isOpen, minutesTitle]);
 
@@ -192,6 +233,27 @@ function ExportDialogInner({
     [isSubmitting, title, minutesTitle, shareWithAttendees, permission, onExport]
   );
 
+  // Handle PDF export
+  const handlePdfExport = useCallback(() => {
+    if (minutes === undefined) {
+      setPdfError('PDF出力に必要な議事録データがありません。');
+      return;
+    }
+
+    setPdfError(undefined);
+
+    try {
+      const filename = `${(title.trim() || minutesTitle).replace(/[/\\?%*:|"<>]/g, '_')}.pdf`;
+      generatePdfDownload(minutes, filename);
+    } catch (error) {
+      if (error instanceof PdfExportError) {
+        setPdfError(error.message);
+      } else {
+        setPdfError('PDF出力中にエラーが発生しました。');
+      }
+    }
+  }, [minutes, title, minutesTitle]);
+
   // Don't render if not open
   if (!isOpen) {
     return null;
@@ -222,12 +284,16 @@ function ExportDialogInner({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-lark-border">
           <div className="flex items-center gap-3">
-            <LarkDocsIcon className="w-8 h-8" />
+            {exportFormat === 'pdf' ? (
+              <PdfIcon className="w-8 h-8" />
+            ) : (
+              <LarkDocsIcon className="w-8 h-8" />
+            )}
             <h2
               id="export-dialog-title"
               className="text-lg font-semibold text-lark-text"
             >
-              Lark Docsにエクスポート
+              議事録エクスポート
             </h2>
           </div>
           <button
@@ -311,6 +377,54 @@ function ExportDialogInner({
               onSubmit={(e): void => { void handleSubmit(e); }}
               className="space-y-5"
             >
+              {/* Format selector */}
+              <div>
+                <label
+                  className="block text-sm font-medium text-lark-text mb-2"
+                >
+                  エクスポート形式
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setExportFormat('lark')}
+                    className={`
+                      flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg
+                      border text-sm font-medium transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
+                      ${exportFormat === 'lark'
+                        ? 'border-lark-primary bg-blue-50 text-lark-primary'
+                        : 'border-lark-border text-gray-600 hover:bg-gray-50'
+                      }
+                    `}
+                    aria-pressed={exportFormat === 'lark'}
+                  >
+                    <LarkDocsIcon className="w-5 h-5" />
+                    <span>Lark Docs</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExportFormat('pdf')}
+                    disabled={minutes === undefined}
+                    className={`
+                      flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg
+                      border text-sm font-medium transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      ${exportFormat === 'pdf'
+                        ? 'border-lark-primary bg-blue-50 text-lark-primary'
+                        : 'border-lark-border text-gray-600 hover:bg-gray-50'
+                      }
+                    `}
+                    aria-pressed={exportFormat === 'pdf'}
+                    title={minutes === undefined ? '議事録データが必要です' : 'PDFとしてエクスポート'}
+                  >
+                    <PdfIcon className="w-5 h-5" />
+                    <span>PDF</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Title input */}
               <div>
                 <label
@@ -337,8 +451,8 @@ function ExportDialogInner({
                 />
               </div>
 
-              {/* Share with attendees */}
-              {attendees.length > 0 && (
+              {/* Lark-specific options: share with attendees */}
+              {exportFormat === 'lark' && attendees.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <input
@@ -417,6 +531,36 @@ function ExportDialogInner({
                 </div>
               )}
 
+              {/* PDF export description */}
+              {exportFormat === 'pdf' && (
+                <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 border border-lark-border">
+                  <p>
+                    ブラウザの印刷ダイアログが開きます。「PDFに保存」を選択してください。
+                  </p>
+                </div>
+              )}
+
+              {/* PDF error message */}
+              {pdfError !== undefined && exportFormat === 'pdf' && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600 text-sm">
+                  <svg
+                    className="w-5 h-5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>{pdfError}</span>
+                </div>
+              )}
+
               {/* Submit button */}
               <div className="flex gap-3 pt-2">
                 <button
@@ -432,47 +576,65 @@ function ExportDialogInner({
                 >
                   キャンセル
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="
-                    flex-1 flex items-center justify-center gap-2
-                    px-4 py-2.5 rounded-lg
-                    text-sm font-medium text-white
-                    bg-lark-primary
-                    hover:bg-blue-600 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                  "
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      <span>エクスポート中...</span>
-                    </>
-                  ) : (
-                    <span>エクスポート</span>
-                  )}
-                </button>
+                {exportFormat === 'lark' ? (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="
+                      flex-1 flex items-center justify-center gap-2
+                      px-4 py-2.5 rounded-lg
+                      text-sm font-medium text-white
+                      bg-lark-primary
+                      hover:bg-blue-600 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        <span>エクスポート中...</span>
+                      </>
+                    ) : (
+                      <span>Larkにエクスポート</span>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handlePdfExport}
+                    className="
+                      flex-1 flex items-center justify-center gap-2
+                      px-4 py-2.5 rounded-lg
+                      text-sm font-medium text-white
+                      bg-red-600
+                      hover:bg-red-700 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                    "
+                  >
+                    <PdfIcon className="w-4 h-4" />
+                    <span>PDFを出力</span>
+                  </button>
+                )}
               </div>
             </form>
           )}
