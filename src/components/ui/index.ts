@@ -67,3 +67,22 @@ export type {
 // ConnectionStatus
 export { ConnectionStatus } from './connection-status';
 export type { ConnectionStatusProps } from './connection-status';
+
+// CommandPalette
+export { CommandPalette } from './CommandPalette';
+export type { CommandPaletteProps } from './CommandPalette';
+
+// ShortcutsHelp
+export { ShortcutsHelp } from './ShortcutsHelp';
+export type { ShortcutsHelpProps } from './ShortcutsHelp';
+
+// KeyboardShortcutProvider
+export {
+  KeyboardShortcutProvider,
+  KeyboardShortcutContext,
+  useKeyboardShortcutContext,
+} from './KeyboardShortcutProvider';
+export type {
+  KeyboardShortcutContextValue,
+  KeyboardShortcutProviderProps,
+} from './KeyboardShortcutProvider';
