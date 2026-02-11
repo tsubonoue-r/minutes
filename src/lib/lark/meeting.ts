@@ -7,11 +7,13 @@ import type { LarkClient } from './client';
 import { LarkClientError } from './client';
 import {
   type LarkMeeting,
+  type LarkMeetingDetailData,
   type LarkMeetingListData,
   type LarkMeetingParticipant,
   type LarkMeetingRecording,
   type LarkParticipantListData,
   type LarkRecordingListData,
+  larkMeetingDetailResponseSchema,
   larkMeetingListResponseSchema,
   larkParticipantListResponseSchema,
   larkRecordingListResponseSchema,
@@ -349,9 +351,56 @@ export class MeetingService {
    * @throws {MeetingApiError} When the API request fails
    */
   async getMeetingById(accessToken: string, meetingId: string): Promise<Meeting> {
+    // Try the direct MEETING_GET endpoint first (works with User Access Token)
     try {
-      // The meeting detail endpoint (/meetings/:id) is not available for app access tokens.
-      // Fetch from meeting_list and find by ID instead.
+      const endpoint = LarkVCApiEndpoints.MEETING_GET.replace(
+        ':meeting_id',
+        meetingId
+      );
+
+      const response = await this.client.authenticatedRequest<LarkMeetingDetailData>(
+        endpoint,
+        accessToken
+      );
+
+      const validated = larkMeetingDetailResponseSchema.parse(response);
+
+      if (validated.data === undefined) {
+        throw new MeetingNotFoundError(meetingId);
+      }
+
+      return transformLarkMeeting(validated.data.meeting);
+    } catch (error) {
+      // If the direct endpoint fails (e.g. permission denied), fall back to meeting_list
+      if (error instanceof LarkClientError) {
+        if (error.code === 99991663 || error.code === 99991664) {
+          throw new MeetingNotFoundError(meetingId, error.message);
+        }
+
+        console.warn(
+          `[MeetingService] MEETING_GET failed (code: ${error.code}), falling back to meeting_list`,
+          error.message
+        );
+        return this.getMeetingByIdFromList(accessToken, meetingId);
+      }
+
+      if (error instanceof MeetingNotFoundError) {
+        throw error;
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Fallback: Get meeting by searching the meeting_list endpoint
+   * Used when the direct MEETING_GET endpoint is not available
+   */
+  private async getMeetingByIdFromList(
+    accessToken: string,
+    meetingId: string
+  ): Promise<Meeting> {
+    try {
       const now = new Date();
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
@@ -359,7 +408,6 @@ export class MeetingService {
         start_time: Math.floor(ninetyDaysAgo.getTime() / 1000).toString(),
         end_time: Math.floor(now.getTime() / 1000).toString(),
         page_size: '100',
-        meeting_no: meetingId,
       };
 
       const response = await this.client.authenticatedRequest<LarkMeetingListData>(
@@ -388,10 +436,7 @@ export class MeetingService {
         throw error;
       }
       if (error instanceof LarkClientError) {
-        if (error.code === 99991663 || error.code === 99991664) {
-          throw new MeetingNotFoundError(meetingId, error.message);
-        }
-        throw MeetingApiError.fromLarkClientError(error, 'getMeetingById');
+        throw MeetingApiError.fromLarkClientError(error, 'getMeetingByIdFromList');
       }
       throw error;
     }
