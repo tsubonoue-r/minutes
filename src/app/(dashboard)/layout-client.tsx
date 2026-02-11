@@ -7,6 +7,7 @@
 
 import { useCallback } from 'react';
 import { Header } from '@/components/layout/header';
+import { KeyboardShortcutProvider } from '@/components/ui/KeyboardShortcutProvider';
 
 /**
  * User information passed from server component
@@ -52,18 +53,20 @@ export function DashboardLayoutClient({
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Responsive Header with Mobile Nav */}
-      <Header
-        user={user}
-        currentPath={currentPath}
-        onLogout={handleLogout}
-      />
+    <KeyboardShortcutProvider>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        {/* Responsive Header with Mobile Nav */}
+        <Header
+          user={user}
+          currentPath={currentPath}
+          onLogout={handleLogout}
+        />
 
-      {/* Main Content - responsive padding */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {children}
-      </main>
-    </div>
+        {/* Main Content - responsive padding */}
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {children}
+        </main>
+      </div>
+    </KeyboardShortcutProvider>
   );
 }

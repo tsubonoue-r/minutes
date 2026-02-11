@@ -11,6 +11,7 @@ import { TopicList } from './TopicSection';
 import { DecisionList } from './DecisionList';
 import { ActionItemList } from './ActionItemList';
 import { MinutesSkeleton } from './MinutesSkeleton';
+import { MinutesEditor } from './MinutesEditor';
 import {
   GenerateButton,
   GenerateMinutesCard,
@@ -44,6 +45,10 @@ export interface MinutesViewerProps {
   readonly enableApiSync?: boolean | undefined;
   /** Initial active tab */
   readonly initialTab?: MinutesTab | undefined;
+  /** Callback when edit mode is entered (enables edit button when provided) */
+  readonly onEdit?: ((minutes: Minutes) => void) | undefined;
+  /** Callback when edited minutes are saved */
+  readonly onSave?: ((updated: Minutes) => void | Promise<void>) | undefined;
   /** Custom class name */
   readonly className?: string | undefined;
 }
@@ -109,7 +114,10 @@ function formatDuration(ms: number): string {
 /**
  * MinutesViewer component
  *
- * @description Main component for displaying AI-generated meeting minutes
+ * @description Main component for displaying AI-generated meeting minutes.
+ *              When `onEdit` and `onSave` props are provided, an edit button
+ *              is shown that switches to inline editing mode via MinutesEditor.
+ *
  * @example
  * ```tsx
  * <MinutesViewer
@@ -117,6 +125,8 @@ function formatDuration(ms: number): string {
  *   isLoading={false}
  *   onTopicClick={handleTopicClick}
  *   onActionStatusChange={handleStatusChange}
+ *   onEdit={handleEdit}
+ *   onSave={handleSave}
  * />
  * ```
  */
@@ -130,10 +140,14 @@ function MinutesViewerInner({
   onActionStatusChange,
   enableApiSync = false,
   initialTab = 'topics',
+  onEdit,
+  onSave,
   className = '',
 }: MinutesViewerProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<MinutesTab>(initialTab);
   const [isCopied, setIsCopied] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Create topics map for linking
   const topicsMap = useMemo(() => {
@@ -172,6 +186,33 @@ function MinutesViewerInner({
       }
     );
   }, [minutes]);
+
+  // Handle entering edit mode
+  const handleEnterEditMode = useCallback(() => {
+    if (minutes === undefined) return;
+    onEdit?.(minutes);
+    setIsEditMode(true);
+  }, [minutes, onEdit]);
+
+  // Handle saving edited minutes
+  const handleSave = useCallback(
+    async (updated: Minutes) => {
+      if (onSave === undefined) return;
+      setIsSaving(true);
+      try {
+        await onSave(updated);
+        setIsEditMode(false);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [onSave]
+  );
+
+  // Handle canceling edit mode
+  const handleCancelEdit = useCallback(() => {
+    setIsEditMode(false);
+  }, []);
 
   // Show loading skeleton
   if (isLoading) {
@@ -218,6 +259,21 @@ function MinutesViewerInner({
     );
   }
 
+  // Show editor when in edit mode
+  if (isEditMode && onSave !== undefined) {
+    return (
+      <MinutesEditor
+        minutes={minutes}
+        onSave={handleSave}
+        onCancel={handleCancelEdit}
+        isSaving={isSaving}
+        className={className}
+      />
+    );
+  }
+
+  const showEditButton = onEdit !== undefined && onSave !== undefined;
+
   return (
     <div
       className={`bg-white rounded-lg border border-lark-border ${className}`}
@@ -257,6 +313,38 @@ function MinutesViewerInner({
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Edit button */}
+            {showEditButton && (
+              <button
+                type="button"
+                onClick={handleEnterEditMode}
+                className="
+                  flex items-center gap-2 px-3 py-2
+                  text-sm text-gray-600
+                  border border-lark-border rounded-lg
+                  hover:bg-gray-50 transition-colors
+                  focus:outline-none focus:ring-2 focus:ring-lark-primary focus:ring-offset-2
+                "
+                aria-label="議事録を編集"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                <span>編集</span>
+              </button>
+            )}
+
             {/* Copy button */}
             <button
               type="button"
