@@ -1,14 +1,23 @@
 /**
  * Minutes UI Components
  *
- * @description Components for displaying AI-generated meeting minutes
- *              including topics, decisions, action items, and generation controls.
+ * @description Components for displaying and editing AI-generated meeting minutes
+ *              including topics, decisions, action items, generation controls,
+ *              and inline editing.
  * @module components/minutes
  */
 
 // MinutesViewer - Main component
 export { MinutesViewer } from './MinutesViewer';
 export type { MinutesViewerProps, MinutesTab } from './MinutesViewer';
+
+// MinutesEditor - Inline editing component
+export { MinutesEditor } from './MinutesEditor';
+export type { MinutesEditorProps } from './MinutesEditor';
+
+// EditableField - Reusable inline-editable field
+export { EditableField } from './EditableField';
+export type { EditableFieldProps } from './EditableField';
 
 // TopicSection - Topic/segment display
 export { TopicSection, TopicList } from './TopicSection';
