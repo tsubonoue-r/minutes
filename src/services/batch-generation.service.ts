@@ -290,19 +290,39 @@ export class BatchGenerationService {
   // ---------------------------------------------------------------------------
 
   /**
+   * Cookie header to forward to internal API calls for authentication
+   */
+  private cookieHeader: string | undefined;
+
+  /**
+   * Set the cookie header to forward to internal API calls
+   * Must be called before processJob() to ensure authentication works
+   */
+  setCookieHeader(cookie: string): void {
+    this.cookieHeader = cookie;
+  }
+
+  /**
    * Default generator that calls the single-meeting generation API
    */
   private readonly defaultGenerator: SingleMeetingGenerator = async (
     meetingId: string
   ) => {
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Forward session cookie for authentication
+      if (this.cookieHeader !== undefined) {
+        headers['Cookie'] = this.cookieHeader;
+      }
+
       const response = await fetch(
         `${this.getBaseUrl()}/api/meetings/${encodeURIComponent(meetingId)}/minutes/generate`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({ language: 'ja' }),
         }
       );

@@ -184,6 +184,10 @@ export async function GET(
       return createErrorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
+    if (session.user === undefined) {
+      return createErrorResponse('UNAUTHORIZED', 'User information not found', 401);
+    }
+
     // Get meeting ID from path params
     const params = await context.params;
     const meetingId = params.id;
@@ -192,9 +196,10 @@ export async function GET(
       return createErrorResponse('INVALID_PARAMS', 'Meeting ID is required', 400);
     }
 
-    // Fetch share links
+    // Fetch share links - only return links created by the current user
     const service = createShareService();
-    const links = await service.getShareLinksForMeeting(meetingId);
+    const allLinks = await service.getShareLinksForMeeting(meetingId);
+    const links = allLinks.filter((link) => link.createdBy === session.user?.openId);
 
     // Build share URLs
     const baseUrl = getBaseUrl(request);

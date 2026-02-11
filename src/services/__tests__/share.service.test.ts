@@ -49,13 +49,16 @@ describe('ShareService', () => {
       expect(expiresAt).toBeGreaterThan(Date.now() + sevenDaysMs - 2000);
     });
 
-    it('should create a share link with password', async () => {
+    it('should create a share link with hashed password', async () => {
       const link = await service.createShareLink(
         { meetingId: 'meeting-001', password: 'secret123' },
         'user-001'
       );
 
-      expect(link.password).toBe('secret123');
+      // Password should be hashed in "salt:hash" format, not stored as plaintext
+      expect(link.password).toBeDefined();
+      expect(link.password).not.toBe('secret123');
+      expect(link.password).toMatch(/^[a-f0-9]{32}:[a-f0-9]{64}$/);
     });
 
     it('should create a share link without expiry for "never"', async () => {

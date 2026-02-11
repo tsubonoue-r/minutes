@@ -6,6 +6,7 @@
  * with Lark Bitable or another persistent store.
  */
 
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type {
   ShareLink,
   CreateShareLinkInput,
@@ -16,6 +17,45 @@ import {
   calculateExpiresAt,
   isShareLinkExpired,
 } from '@/types/share';
+
+// =============================================================================
+// Password Hashing Utilities
+// =============================================================================
+
+/**
+ * Hash a password with a random salt using SHA-256
+ * Returns "salt:hash" format
+ */
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = createHash('sha256')
+    .update(salt + password)
+    .digest('hex');
+  return `${salt}:${hash}`;
+}
+
+/**
+ * Verify a password against a stored "salt:hash" value using constant-time comparison
+ */
+function verifyPassword(password: string, storedHash: string): boolean {
+  const colonIndex = storedHash.indexOf(':');
+  if (colonIndex === -1) return false;
+
+  const salt = storedHash.substring(0, colonIndex);
+  const expectedHash = storedHash.substring(colonIndex + 1);
+  const actualHash = createHash('sha256')
+    .update(salt + password)
+    .digest('hex');
+
+  try {
+    return timingSafeEqual(
+      Buffer.from(expectedHash, 'hex'),
+      Buffer.from(actualHash, 'hex')
+    );
+  } catch {
+    return false;
+  }
+}
 
 // =============================================================================
 // Error Types
@@ -106,7 +146,7 @@ export class ShareService {
       shareLink = { ...shareLink, expiresAt };
     }
     if (input.password !== undefined) {
-      shareLink = { ...shareLink, password: input.password };
+      shareLink = { ...shareLink, password: hashPassword(input.password) };
     }
 
     // Store
@@ -246,17 +286,8 @@ export class ShareService {
       if (password === undefined) {
         return { valid: false, requiresPassword: true };
       }
-      // Constant-time comparison to prevent timing attacks
-      const stored = shareLink.password;
-      const input = password;
-      if (stored.length !== input.length) {
-        return { valid: false };
-      }
-      let mismatch = 0;
-      for (let i = 0; i < stored.length; i++) {
-        mismatch |= stored.charCodeAt(i) ^ input.charCodeAt(i);
-      }
-      if (mismatch !== 0) {
+      // Constant-time comparison via crypto.timingSafeEqual
+      if (!verifyPassword(password, shareLink.password)) {
         return { valid: false };
       }
     }

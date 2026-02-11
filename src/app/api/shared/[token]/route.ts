@@ -8,6 +8,22 @@
 import { NextResponse } from 'next/server';
 import { createShareService } from '@/services/share.service';
 import { createEmptyMinutes } from '@/types/minutes';
+import {
+  rateLimitRequest,
+  createRateLimitResponse,
+  type RateLimitConfig,
+} from '@/lib/rate-limit';
+
+/**
+ * Strict rate limit for shared endpoints (10 requests per minute per IP)
+ * Prevents password brute-force attacks
+ */
+const SHARED_RATE_LIMIT: RateLimitConfig = {
+  maxRequests: 10,
+  windowMs: 60 * 1000,
+  includeHeaders: true,
+  keyPrefix: 'shared',
+};
 
 // =============================================================================
 // Types
@@ -100,6 +116,12 @@ export async function GET(
   context: RouteContext
 ): Promise<Response> {
   try {
+    // Rate limit check
+    const rateLimitResult = rateLimitRequest(_request, SHARED_RATE_LIMIT);
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
     const { token } = await context.params;
 
     if (token === undefined || token.trim() === '') {
@@ -155,6 +177,12 @@ export async function POST(
   context: RouteContext
 ): Promise<Response> {
   try {
+    // Rate limit check (stricter for password attempts)
+    const rateLimitResult = rateLimitRequest(request, SHARED_RATE_LIMIT);
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
     const { token } = await context.params;
 
     if (token === undefined || token.trim() === '') {

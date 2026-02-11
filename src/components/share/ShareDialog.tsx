@@ -397,7 +397,7 @@ export function ShareDialog({
   const handleDeactivate = useCallback(async (linkId: string): Promise<void> => {
     try {
       const response = await fetch(
-        `/api/meetings/${meetingId}/share?linkId=${linkId}`,
+        `/api/meetings/${encodeURIComponent(meetingId)}/share?linkId=${encodeURIComponent(linkId)}`,
         { method: 'DELETE' }
       );
 

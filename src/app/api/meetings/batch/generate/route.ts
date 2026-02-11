@@ -14,6 +14,22 @@ import {
   getBatchGenerationService,
   BatchGenerationError,
 } from '@/services/batch-generation.service';
+import {
+  rateLimitRequest,
+  createRateLimitResponse,
+  type RateLimitConfig,
+} from '@/lib/rate-limit';
+
+/**
+ * Rate limit for batch generation (5 requests per minute per user)
+ * Prevents abuse of expensive batch operations
+ */
+const BATCH_RATE_LIMIT: RateLimitConfig = {
+  maxRequests: 5,
+  windowMs: 60 * 1000,
+  includeHeaders: true,
+  keyPrefix: 'batch',
+};
 
 // =============================================================================
 // Types
@@ -126,6 +142,12 @@ function createErrorResponse(
  */
 export async function POST(request: Request): Promise<Response> {
   try {
+    // 0. Rate limit check
+    const rateLimitResult = rateLimitRequest(request, BATCH_RATE_LIMIT);
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
     // 1. Authentication check
     const session = await getSession();
 
@@ -162,6 +184,12 @@ export async function POST(request: Request): Promise<Response> {
     // 3. Create the batch job
     const service = getBatchGenerationService();
     const job = service.createJob(validation.data);
+
+    // Forward session cookie to internal API calls for authentication
+    const cookieHeader = request.headers.get('cookie');
+    if (cookieHeader !== null) {
+      service.setCookieHeader(cookieHeader);
+    }
 
     // 4. Start processing in the background (non-blocking)
     void service.processJob(job.id, (updatedJob) => {
